@@ -47,6 +47,7 @@
   </style>
 </head>
 <body>
+{% raw %}
   <div id="app" class="max-w-md mx-auto bg-[#FCFAF5] min-h-screen shadow-xl relative overflow-hidden flex flex-col">
     
     <header v-if="currentView !== 'home'" class="bg-kawaii-green text-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-md rounded-b-3xl">
@@ -412,6 +413,7 @@
       </div>
     </main>
   </div>
+{% endraw %}
 
   <script type="module">
     import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
@@ -484,17 +486,14 @@
             return this.activeTrip.expenses.filter(e => e.type === 'personal' && e.creatorCode === this.currentUser.code);
           }
         },
-        // 新增的計算屬性：用來統整每個人要分的公費總額
         memberExpenseSummaries() {
           if (!this.activeTrip || !this.activeTrip.expenses || !this.activeTrip.members) return [];
           
-          // 先為每個成員建立一個暫存的加總物件
           const summary = {};
           this.activeTrip.members.forEach(m => {
             summary[m.code] = { name: m.name, totals: {} };
           });
           
-          // 巡覽所有公費
           this.activeTrip.expenses.forEach(exp => {
             if (exp.type === 'group' && exp.participants && exp.participants.length > 0) {
               const splitAmount = exp.amount / exp.participants.length;
@@ -509,7 +508,6 @@
             }
           });
           
-          // 轉換成陣列，並整理顯示文字 (例如: HKD 100 / JPY 500)
           return Object.values(summary).map(user => {
             const totalsArray = Object.entries(user.totals).map(([currency, amount]) => `${currency} ${amount.toFixed(1)}`);
             return {
