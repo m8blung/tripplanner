@@ -71,7 +71,7 @@
           <div class="sticker-emoji hidden mb-4">🧳</div>
           
           <h1 class="text-3xl font-bold text-kawaii-dark tracking-wider">我們的旅途</h1>
-          <p class="text-sm text-kawaii-blue mt-2 font-bold">☁️ For M8B Members ☁️</p>
+          <p class="text-sm text-kawaii-blue mt-2 font-bold">☁️ For M8B Buddies☁️</p>
         </div>
 
         <div class="w-full space-y-5">
@@ -291,6 +291,27 @@
               <button @click="expenseType = 'personal'" :class="expenseType==='personal' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">🙋 私房錢</button>
               <button @click="expenseType = 'group'" :class="expenseType==='group' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">👨‍👩‍👧‍👦 公費</button>
             </div>
+            
+            <!-- 📊 公費結算總覽面板 -->
+            <div v-if="expenseType === 'group'" class="bg-white p-5 rounded-3xl shadow-sm border border-kawaii mb-4">
+              <h3 class="font-bold text-kawaii-dark mb-3 flex items-center gap-2">📊 每人應付總額 (公費結算)</h3>
+              <div v-if="!groupExpenseSummary || groupExpenseSummary.length === 0" class="text-xs text-gray-400 text-center py-2">目前還沒有公費記錄喔！</div>
+              <div v-else class="space-y-3">
+                <div v-for="user in groupExpenseSummary" :key="user.code" class="flex justify-between items-center text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                  <span class="font-bold text-gray-600 flex items-center gap-2">
+                    <div class="w-7 h-7 bg-kawaii-green rounded-full text-white flex items-center justify-center text-xs shadow-sm">{{ user.name.charAt(0) }}</div>
+                    {{ user.name }}
+                  </span>
+                  <div class="text-right">
+                    <div v-if="Object.keys(user.totals).length === 0" class="text-gray-400 text-xs">無須分攤 🎉</div>
+                    <div v-for="(amount, curr) in user.totals" :key="curr" class="text-kawaii-pink font-bold">
+                      {{ curr }} {{ amount.toFixed(1) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="space-y-3">
               <div v-for="exp in filteredExpenses" :key="exp.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
                 <div class="absolute left-0 top-0 w-3 h-full" :class="expenseType==='group' ? 'bg-kawaii-pink' : 'bg-kawaii-blue'"></div>
@@ -390,6 +411,15 @@
                 </li>
               </ul>
             </div>
+            
+            <!-- ⚠️ 危險區域：刪除旅程 -->
+            <div v-if="isCreator" class="mt-8 pt-4 border-t border-gray-200">
+              <button @click="deleteWholeTrip" class="w-full bg-red-50 text-red-500 py-4 rounded-3xl font-bold shadow-sm active:scale-95 transition flex justify-center items-center gap-2 border border-red-200">
+                ⚠️ 永久刪除此旅程
+              </button>
+              <p class="text-xs text-gray-400 text-center mt-2 font-bold">刪除後所有行程與帳本將無法復原</p>
+            </div>
+            
           </div>
 
         </div>
@@ -467,6 +497,33 @@
           } else {
             return this.activeTrip.expenses.filter(e => e.type === 'personal' && e.creatorCode === this.currentUser.code);
           }
+        },
+        groupExpenseSummary() {
+          if (!this.activeTripData || !this.activeTripData.members) return [];
+          
+          // 初始化每位成員的加總資料
+          const summary = {};
+          this.activeTripData.members.forEach(m => {
+            summary[m.code] = { name: m.name, code: m.code, totals: {} };
+          });
+          
+          // 計算每筆公費的分攤
+          const groupExps = (this.activeTripData.expenses || []).filter(e => e.type === 'group');
+          groupExps.forEach(exp => {
+            if (!exp.participants || exp.participants.length === 0) return;
+            const splitAmount = exp.amount / exp.participants.length;
+            
+            exp.participants.forEach(code => {
+              if (summary[code]) {
+                if (!summary[code].totals[exp.currency]) {
+                  summary[code].totals[exp.currency] = 0;
+                }
+                summary[code].totals[exp.currency] += splitAmount;
+              }
+            });
+          });
+          
+          return Object.values(summary);
         }
       },
       mounted() {
@@ -632,6 +689,30 @@
           if(confirm('確定要將這位旅伴請下車嗎？ 🥺')) {
             this.activeTripData.members = this.activeTripData.members.filter(m => m.code !== code);
             this.saveActiveTripToCloud();
+          }
+        },
+        async deleteWholeTrip() {
+          if (!this.isCreator) return;
+          
+          const confirmCode = prompt(`這將永久刪除整個旅程和所有資料！\n請輸入旅程碼「${this.activeTripCode}」來確認刪除：`);
+          
+          if (confirmCode === this.activeTripCode) {
+            try {
+              const tripRef = ref(db, 'trips/' + this.activeTripCode);
+              await remove(tripRef);
+              
+              // 移除本地紀錄
+              this.joinedTrips = this.joinedTrips.filter(t => t.code !== this.activeTripCode);
+              this.saveLocalJoined();
+              
+              alert('旅程已成功從雲端刪除！ 👋');
+              this.exitTrip();
+            } catch (e) {
+              alert('刪除失敗，請稍後再試。');
+              console.error(e);
+            }
+          } else if (confirmCode !== null) {
+            alert('旅程碼輸入錯誤，已取消刪除。');
           }
         },
         getCategoryColor(cat) {
