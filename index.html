@@ -3,104 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>即時旅伴同步 App</title>
+  <title>日系手帳風 - 旅程同步 App</title>
+  
+  <!-- 引入 Google Fonts 網路免費日系圓體與手寫風格字體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
-    /* 基礎美化樣式 */
+    /* 全站套用可愛圓滾滾的日系手體與暖色紙張背景 */
     body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background-color: #f5f7fa;
+      font-family: 'M PLUS Rounded 1c', sans-serif; 
+      background-color: #fcfaf5; /* 類似棉紙的溫潤白 */
+      color: #5c5247; 
       padding: 20px; 
       max-width: 500px; 
       margin: 0 auto; 
     }
     .hidden { display: none; }
+    
+    /* 日系文具風卡片 */
     .card { 
-      background: white; 
+      background: #ffffff; 
       padding: 25px; 
-      border-radius: 12px; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      border-radius: 20px; 
+      box-shadow: 0 6px 20px rgba(184, 169, 153, 0.12); 
       margin-bottom: 20px; 
+      border: 2px solid #f0eae1;
     }
-    h2, h3 { color: #333; text-align: center; }
+    
+    h2 { 
+      color: #8c7365; 
+      text-align: center; 
+      letter-spacing: 2px;
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
+    
+    h3 { 
+      color: #8c7365; 
+      text-align: center; 
+      font-weight: 500;
+    }
+
+    h4 {
+      color: #8c7365;
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+    
+    /* 圓潤可愛的輸入框 */
     input { 
-      padding: 12px; 
+      padding: 14px 16px; 
       margin: 10px 0; 
       width: 100%; 
       box-sizing: border-box; 
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      border: 2px solid #e8e0d5;
+      border-radius: 12px;
       font-size: 16px;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: #fefcf9;
+      color: #5c5247;
+      outline: none;
+      transition: all 0.3s;
     }
+    input:focus {
+      border-color: #bfa595;
+      background-color: #fff;
+    }
+    
+    /* 質感日系按鈕 */
     button { 
-      padding: 12px; 
+      padding: 14px; 
       margin: 10px 0; 
       width: 100%; 
       box-sizing: border-box; 
-      background-color: #4CAF50; 
+      background-color: #b59f8c; 
       color: white; 
       border: none; 
-      border-radius: 6px;
+      border-radius: 12px;
       font-size: 16px;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
       cursor: pointer; 
-      font-weight: bold;
+      font-weight: 500;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(181, 159, 140, 0.25);
     }
-    button:hover { background-color: #45a049; }
-    #leave-btn { background-color: #ff4d4d; }
-    #leave-btn:hover { background-color: #cc0000; }
+    button:hover { 
+      background-color: #a38c79; 
+      transform: translateY(-1px);
+    }
+    
+    #create-btn {
+      background-color: #d19a86; /* 溫柔的拿鐵粉棕色 */
+    }
+    #create-btn:hover { background-color: #bd8774; }
+
+    #leave-btn { 
+      background-color: #d9a096; /* 柔和的乾燥花紅 */
+      box-shadow: 0 4px 10px rgba(217, 160, 150, 0.25);
+    }
+    #leave-btn:hover { background-color: #c48e84; }
+
+    /* 手帳紙膠帶/貼紙風清單項目 */
     ul { list-style-type: none; padding: 0; }
     li { 
-      background: #f1f3f5; 
-      margin: 8px 0; 
-      padding: 12px; 
-      border-radius: 6px; 
-      border-left: 4px solid #4CAF50;
+      background: #fcf9f2; 
+      margin: 12px 0; 
+      padding: 14px 16px; 
+      border-radius: 12px; 
+      border-left: 5px solid #d19a86;
+      border-top: 1px dashed #e8e0d5;
+      border-right: 1px dashed #e8e0d5;
+      border-bottom: 1px dashed #e8e0d5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.01);
+      font-size: 15px;
     }
+    
+    /* 旅程碼顯示框 */
     .code-display {
-      font-size: 24px;
-      color: #007bff;
-      font-weight: bold;
+      font-size: 26px;
+      color: #9c7c6c;
+      font-weight: 700;
+      letter-spacing: 4px;
+      background: #f7f1e8;
+      padding: 10px 20px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-top: 8px;
+      border: 1px dashed #d6c5b5;
+    }
+
+    .divider {
+      text-align: center; 
+      margin: 20px 0; 
+      color: #c7b8a8; 
+      font-size: 14px;
       letter-spacing: 2px;
     }
   </style>
 </head>
 <body>
 
-  <h2>✈️ 旅程同步 App</h2>
+  <h2>🌱 旅程手帳 Memo</h2>
 
   <!-- 第一畫面：登入/主畫面 -->
   <div id="home-screen" class="card">
-    <h3>建立或加入旅程</h3>
-    <button id="create-btn">✨ 創建新旅程</button>
+    <h3>開啟您的專屬旅程</h3>
+    <button id="create-btn">✨ 創建新旅程手帳</button>
     
-    <div style="text-align: center; margin: 15px 0; color: #888;">--- 或 ---</div>
+    <div class="divider">＊　或　＊</div>
     
-    <input type="text" id="join-code-input" placeholder="輸入朋友給的旅程碼 (例如: A1B2C3)">
-    <button id="join-btn">🤝 參與旅伴的旅程</button>
+    <input type="text" id="join-code-input" placeholder="請輸入旅伴給的旅程碼...">
+    <button id="join-btn">📖 翻閱旅伴的手帳</button>
   </div>
 
   <!-- 第二畫面：旅程內容與記帳畫面 -->
   <div id="app-screen" class="card hidden">
-    <h3>目前的旅程碼：<br><span id="room-code-display" class="code-display"></span></h3>
-    <p style="text-align: center; color: #666; font-size: 14px;">(把這組號碼給朋友，他們就能加進來囉)</p>
+    <div style="text-align: center;">
+      <h3>目前的旅程代號</h3>
+      <span id="room-code-display" class="code-display"></span>
+      <p style="color: #a89888; font-size: 13px; margin-top: 10px;">（將代號分享給旅伴，即可一同編輯）</p>
+    </div>
     
-    <button id="leave-btn">登出 / 離開旅程</button>
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    <button id="leave-btn">🔖 闔上本本 / 離開旅程</button>
+    <hr style="border: 0; border-top: 2px dashed #f0eae1; margin: 20px 0;">
     
-    <input type="text" id="item-input" placeholder="輸入行程安排或記帳金額...">
-    <button id="add-btn">➕ 新增</button>
+    <input type="text" id="item-input" placeholder="寫下行程或記帳筆記... (例: 晚餐吃拉麵 $1500)">
+    <button id="add-btn">✍️ 寫入頁面</button>
     
-    <h4 style="margin-top: 20px;">大家的行程與記帳清單：</h4>
+    <h4 style="margin-top: 25px; border-bottom: 2px dotted #f0eae1; padding-bottom: 8px;">📝 行程與記帳清單：</h4>
     <ul id="item-list">
-      <!-- 這裡會即時顯示資料庫的內容 -->
+      <!-- 即時同步內容 -->
     </ul>
   </div>
 
-  <!-- 引入 Firebase 模組與您的專屬設定 -->
+  <!-- 引入 Firebase 模組與設定 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    // 您的專屬 Firebase 金鑰
     const firebaseConfig = {
       apiKey: "AIzaSyDTIgUaTNIK2AeZvUbsWfRZ9hmaV7JNGWA",
       authDomain: "tripplanner-8dd1a.firebaseapp.com",
@@ -111,11 +194,9 @@
       appId: "1:139484369303:web:1f5ea1994c1767351e34d2"
     };
 
-    // 初始化 Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 抓取網頁上的元素
     const homeScreen = document.getElementById('home-screen');
     const appScreen = document.getElementById('app-screen');
     const createBtn = document.getElementById('create-btn');
@@ -129,13 +210,11 @@
 
     let currentRoom = null;
 
-    // 點擊「創建新旅程」：隨機產生一組 6 碼的旅程碼
     createBtn.addEventListener('click', () => {
       const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       enterRoom(newCode);
     });
 
-    // 點擊「參與旅伴的旅程」：讀取輸入框的代碼
     joinBtn.addEventListener('click', () => {
       const code = joinCodeInput.value.trim().toUpperCase();
       if (code) {
@@ -145,64 +224,56 @@
       }
     });
 
-    // 點擊「離開旅程」：回到首頁
     leaveBtn.addEventListener('click', () => {
       currentRoom = null;
       joinCodeInput.value = '';
       homeScreen.classList.remove('hidden');
       appScreen.classList.add('hidden');
-      itemList.innerHTML = ''; // 清空畫面上的清單
+      itemList.innerHTML = '';
     });
 
-    // 進入旅程房間的核心功能
     function enterRoom(roomCode) {
       currentRoom = roomCode;
       roomCodeDisplay.textContent = currentRoom;
       
-      // 切換畫面
       homeScreen.classList.add('hidden');
       appScreen.classList.remove('hidden');
 
-      // 啟動 Firebase 即時監聽功能
       const roomRef = ref(db, 'trips/' + currentRoom);
       onValue(roomRef, (snapshot) => {
-        itemList.innerHTML = ''; // 每次資料庫更新時，先清空畫面
+        itemList.innerHTML = '';
         const data = snapshot.val();
         
         if (data) {
-          // 如果資料庫有東西，就把每一筆資料變成 <li> 顯示出來
           Object.values(data).forEach(item => {
             const li = document.createElement('li');
             li.textContent = item.text;
             itemList.appendChild(li);
           });
         } else {
-          itemList.innerHTML = '<li style="background:transparent; border:none; text-align:center; color:#999;">目前還沒有行程，趕快新增一筆吧！</li>';
+          itemList.innerHTML = '<li style="background:transparent; border:none; text-align:center; color:#c7b8a8;">本頁面還空白著呢，寫下一筆記錄吧～</li>';
         }
       });
     }
 
-    // 點擊「新增」：把輸入的文字推送到 Firebase 資料庫
     addBtn.addEventListener('click', () => {
       const text = itemInput.value.trim();
       if (text && currentRoom) {
         const roomRef = ref(db, 'trips/' + currentRoom);
-        const newItemRef = push(roomRef); // 產生一筆有唯一 ID 的新資料
+        const newItemRef = push(roomRef);
         set(newItemRef, { 
           text: text,
           timestamp: Date.now()
         });
-        itemInput.value = ''; // 新增後清空輸入框
+        itemInput.value = '';
       }
     });
 
-    // 支援按 Enter 鍵新增
     itemInput.addEventListener('keypress', function (e) {
       if (e.key === 'Enter') {
         addBtn.click();
       }
     });
-
   </script>
 </body>
 </html>
