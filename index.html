@@ -71,7 +71,7 @@
           <div class="sticker-emoji hidden mb-4">🧳</div>
           
           <h1 class="text-3xl font-bold text-kawaii-dark tracking-wider">我們的旅途</h1>
-          <p class="text-sm text-kawaii-blue mt-2 font-bold">☁️ 雲端即時連線版 ☁️</p>
+          <p class="text-sm text-kawaii-blue mt-2 font-bold">☁️ For M8B Members ☁️</p>
         </div>
 
         <div class="w-full space-y-5">
@@ -291,22 +291,6 @@
               <button @click="expenseType = 'personal'" :class="expenseType==='personal' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">🙋 私房錢</button>
               <button @click="expenseType = 'group'" :class="expenseType==='group' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">👨‍👩‍👧‍👦 公費</button>
             </div>
-
-            <!-- 公費結算總覽 -->
-            <div v-if="expenseType === 'group'" class="bg-white p-5 rounded-3xl shadow-sm border border-kawaii mb-4">
-              <h3 class="font-bold text-kawaii-dark mb-3 flex items-center gap-2">📊 公費結算總覽</h3>
-              <div v-if="memberExpenseSummaries.length === 0" class="text-sm text-gray-400 text-center py-2">
-                目前還沒有任何公費紀錄喔！
-              </div>
-              <ul v-else class="space-y-2">
-                <li v-for="summary in memberExpenseSummaries" :key="summary.name" class="flex justify-between items-center text-sm p-3 bg-[#FCFAF5] rounded-xl border border-kawaii">
-                  <span class="font-bold text-gray-600">👤 {{ summary.name }}</span>
-                  <span class="text-kawaii-pink font-bold">{{ summary.displayTotal }}</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- 公費/私房錢 清單 -->
             <div class="space-y-3">
               <div v-for="exp in filteredExpenses" :key="exp.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
                 <div class="absolute left-0 top-0 w-3 h-full" :class="expenseType==='group' ? 'bg-kawaii-pink' : 'bg-kawaii-blue'"></div>
@@ -483,40 +467,6 @@
           } else {
             return this.activeTrip.expenses.filter(e => e.type === 'personal' && e.creatorCode === this.currentUser.code);
           }
-        },
-        // 新增的計算屬性：用來統整每個人要分的公費總額
-        memberExpenseSummaries() {
-          if (!this.activeTrip || !this.activeTrip.expenses || !this.activeTrip.members) return [];
-          
-          // 先為每個成員建立一個暫存的加總物件
-          const summary = {};
-          this.activeTrip.members.forEach(m => {
-            summary[m.code] = { name: m.name, totals: {} };
-          });
-          
-          // 巡覽所有公費
-          this.activeTrip.expenses.forEach(exp => {
-            if (exp.type === 'group' && exp.participants && exp.participants.length > 0) {
-              const splitAmount = exp.amount / exp.participants.length;
-              exp.participants.forEach(code => {
-                if (summary[code]) {
-                  if (!summary[code].totals[exp.currency]) {
-                    summary[code].totals[exp.currency] = 0;
-                  }
-                  summary[code].totals[exp.currency] += splitAmount;
-                }
-              });
-            }
-          });
-          
-          // 轉換成陣列，並整理顯示文字 (例如: HKD 100 / JPY 500)
-          return Object.values(summary).map(user => {
-            const totalsArray = Object.entries(user.totals).map(([currency, amount]) => `${currency} ${amount.toFixed(1)}`);
-            return {
-              name: user.name,
-              displayTotal: totalsArray.length > 0 ? totalsArray.join(' / ') : '0'
-            };
-          });
         }
       },
       mounted() {
@@ -787,6 +737,7 @@
           if (exp.type === 'group' && !this.isCreator) return;
           this.editingExpense = exp;
           this.expenseForm = { ...exp };
+          // 確保編輯時未定義participants時能自動帶入全部成員
           if (!this.expenseForm.participants) {
             this.expenseForm.participants = this.activeTripData.members.map(m => m.code);
           }
