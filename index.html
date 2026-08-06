@@ -291,6 +291,22 @@
               <button @click="expenseType = 'personal'" :class="expenseType==='personal' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">🙋 私房錢</button>
               <button @click="expenseType = 'group'" :class="expenseType==='group' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">👨‍👩‍👧‍👦 公費</button>
             </div>
+
+            <!-- 公費結算總覽 -->
+            <div v-if="expenseType === 'group'" class="bg-white p-5 rounded-3xl shadow-sm border border-kawaii mb-4">
+              <h3 class="font-bold text-kawaii-dark mb-3 flex items-center gap-2">📊 公費結算總覽</h3>
+              <div v-if="memberExpenseSummaries.length === 0" class="text-sm text-gray-400 text-center py-2">
+                目前還沒有任何公費紀錄喔！
+              </div>
+              <ul v-else class="space-y-2">
+                <li v-for="summary in memberExpenseSummaries" :key="summary.name" class="flex justify-between items-center text-sm p-3 bg-[#FCFAF5] rounded-xl border border-kawaii">
+                  <span class="font-bold text-gray-600">👤 {{ summary.name }}</span>
+                  <span class="text-kawaii-pink font-bold">{{ summary.displayTotal }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- 公費/私房錢 清單 -->
             <div class="space-y-3">
               <div v-for="exp in filteredExpenses" :key="exp.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
                 <div class="absolute left-0 top-0 w-3 h-full" :class="expenseType==='group' ? 'bg-kawaii-pink' : 'bg-kawaii-blue'"></div>
@@ -299,8 +315,20 @@
                     <span class="font-bold text-lg text-kawaii-dark">{{ exp.desc }}</span>
                     <span class="text-kawaii-pink font-bold text-xl">{{ exp.currency }} {{ exp.amount }}</span>
                   </div>
+                  
+                  <!-- 公費平分資訊顯示 -->
+                  <div v-if="exp.type === 'group'" class="mt-2 text-xs bg-[#FCFAF5] p-2.5 rounded-xl border border-kawaii space-y-1">
+                    <div class="flex justify-between font-bold text-gray-500">
+                      <span>參與分攤 ({{ exp.participants ? exp.participants.length : 0 }}人)：</span>
+                      <span class="text-kawaii-blue">每人約 {{ exp.currency }} {{ calculateSplit(exp) }}</span>
+                    </div>
+                    <div class="text-gray-400 text-[11px] truncate">
+                      包含：{{ getParticipantNames(exp) }}
+                    </div>
+                  </div>
+
                   <div class="flex justify-between items-end mt-3">
-                    <span class="text-[10px] text-gray-400">👤 {{ exp.creatorName }}</span>
+                    <span class="text-[10px] text-gray-400">👤 記錄者: {{ exp.creatorName }}</span>
                     <div class="space-x-2">
                       <button v-if="exp.type === 'group' && isCreator" @click="editExpense(exp)" class="text-xs font-bold bg-blue-50 text-kawaii-blue px-3 py-1.5 rounded-lg">編輯</button>
                       <button v-if="canDeleteExpense(exp)" @click="deleteExpense(exp.id)" class="text-xs font-bold bg-red-50 text-red-400 px-3 py-1.5 rounded-lg">刪除</button>
@@ -323,6 +351,24 @@
                   <input v-model.number="expenseForm.amount" type="number" placeholder="💰 金額" class="w-2/3 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-lg outline-none font-bold text-kawaii-pink">
                 </div>
                 <input v-model="expenseForm.desc" placeholder="🛒 買了什麼？" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
+                
+                <!-- 公費時顯示成員勾選區塊 -->
+                <div v-if="expenseType === 'group'" class="bg-[#FCFAF5] p-3 rounded-2xl border border-kawaii space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-500">👥 選擇分攤成員：</span>
+                    <button @click="toggleSelectAllParticipants" type="button" class="text-xs text-kawaii-blue font-bold">全選 / 取消</button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                    <label v-for="m in activeTrip.members" :key="m.code" class="flex items-center gap-2 text-xs font-bold text-kawaii-dark bg-white p-2 rounded-xl border border-kawaii cursor-pointer">
+                      <input type="checkbox" :value="m.code" v-model="expenseForm.participants" class="rounded accent-kawaii-pink">
+                      <span class="truncate">{{ m.name }}</span>
+                    </label>
+                  </div>
+                  <div class="text-right text-xs text-kawaii-pink font-bold pt-1" v-if="expenseForm.amount && expenseForm.participants.length > 0">
+                    💡 每人分攤：{{ expenseForm.currency }} {{ (expenseForm.amount / expenseForm.participants.length).toFixed(1) }}
+                  </div>
+                </div>
+
                 <div class="flex gap-2 pt-2">
                   <button @click="saveExpense" class="flex-1 bg-kawaii-blue text-white py-3 rounded-full font-bold text-sm shadow-md active:scale-95 transition">儲存</button>
                   <button v-if="editingExpense" @click="cancelEditExpense" class="w-1/3 bg-gray-100 text-gray-500 py-3 rounded-full text-sm font-bold">取消</button>
@@ -437,6 +483,40 @@
           } else {
             return this.activeTrip.expenses.filter(e => e.type === 'personal' && e.creatorCode === this.currentUser.code);
           }
+        },
+        // 新增的計算屬性：用來統整每個人要分的公費總額
+        memberExpenseSummaries() {
+          if (!this.activeTrip || !this.activeTrip.expenses || !this.activeTrip.members) return [];
+          
+          // 先為每個成員建立一個暫存的加總物件
+          const summary = {};
+          this.activeTrip.members.forEach(m => {
+            summary[m.code] = { name: m.name, totals: {} };
+          });
+          
+          // 巡覽所有公費
+          this.activeTrip.expenses.forEach(exp => {
+            if (exp.type === 'group' && exp.participants && exp.participants.length > 0) {
+              const splitAmount = exp.amount / exp.participants.length;
+              exp.participants.forEach(code => {
+                if (summary[code]) {
+                  if (!summary[code].totals[exp.currency]) {
+                    summary[code].totals[exp.currency] = 0;
+                  }
+                  summary[code].totals[exp.currency] += splitAmount;
+                }
+              });
+            }
+          });
+          
+          // 轉換成陣列，並整理顯示文字 (例如: HKD 100 / JPY 500)
+          return Object.values(summary).map(user => {
+            const totalsArray = Object.entries(user.totals).map(([currency, amount]) => `${currency} ${amount.toFixed(1)}`);
+            return {
+              name: user.name,
+              displayTotal: totalsArray.length > 0 ? totalsArray.join(' / ') : '0'
+            };
+          });
         }
       },
       mounted() {
@@ -654,11 +734,36 @@
           }
         },
         getEmptyExpenseForm() {
-          return { id: null, currency: 'HKD', amount: '', desc: '' };
+          const allMemberCodes = this.activeTripData && this.activeTripData.members 
+            ? this.activeTripData.members.map(m => m.code) 
+            : [];
+          return { id: null, currency: 'HKD', amount: '', desc: '', participants: allMemberCodes };
+        },
+        toggleSelectAllParticipants() {
+          const allCodes = this.activeTripData.members.map(m => m.code);
+          if (this.expenseForm.participants.length === allCodes.length) {
+            this.expenseForm.participants = [];
+          } else {
+            this.expenseForm.participants = allCodes;
+          }
+        },
+        calculateSplit(exp) {
+          if (!exp.participants || exp.participants.length === 0) return exp.amount;
+          return (exp.amount / exp.participants.length).toFixed(1);
+        },
+        getParticipantNames(exp) {
+          if (!exp.participants || exp.participants.length === 0) return '無';
+          return exp.participants.map(code => {
+            const m = this.activeTripData.members.find(member => member.code === code);
+            return m ? m.name : code;
+          }).join(', ');
         },
         saveExpense() {
           if (!this.expenseForm.amount || !this.expenseForm.desc) return alert('金額和描述都要填寫喔 ✍️');
           if (this.expenseType === 'group' && this.editingExpense && !this.isCreator) return alert('🔒 只有創建者可改公費');
+          if (this.expenseType === 'group' && (!this.expenseForm.participants || this.expenseForm.participants.length === 0)) {
+            return alert('請至少勾選一位分攤成員 👥');
+          }
 
           const newExp = {
             ...this.expenseForm,
@@ -682,6 +787,9 @@
           if (exp.type === 'group' && !this.isCreator) return;
           this.editingExpense = exp;
           this.expenseForm = { ...exp };
+          if (!this.expenseForm.participants) {
+            this.expenseForm.participants = this.activeTripData.members.map(m => m.code);
+          }
         },
         cancelEditExpense() {
           this.editingExpense = null;
