@@ -3,83 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>我們的旅途</title>
+  <title>我們的旅途 - 日系手帳版</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+    /* 引入日系可愛圓體字型 */
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Nunito:wght@400;700&display=swap');
+    
     body { 
-      font-family: 'Nunito', 'PingFang HK', 'Microsoft JhengHei', sans-serif; 
-      background-color: #F0EFEB; /* 莫蘭迪米灰底色 */
-      color: #5C5955; /* 柔和深灰字體 */
+      font-family: 'M PLUS Rounded 1c', 'Nunito', 'PingFang HK', 'Microsoft JhengHei', sans-serif; 
+      background-color: #F8F4E6; /* 更柔和的日系手帳底色 */
+      color: #5C5955; 
       -webkit-tap-highlight-color: transparent;
     }
-    /* 隱藏滾動條但保持可滾動 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     
-    /* 自訂莫蘭迪色系 class 輔助 */
-    .bg-morandi-green { background-color: #A9B5A3; }
-    .bg-morandi-pink { background-color: #D7B4B1; }
-    .bg-morandi-blue { background-color: #98A6AD; }
-    .bg-morandi-taupe { background-color: #CBBAB3; }
-    .text-morandi-dark { color: #5C5955; }
-    .border-morandi { border-color: #E2DED5; }
+    /* 日系粉彩配色 */
+    .bg-kawaii-green { background-color: #93C588; }
+    .bg-kawaii-pink { background-color: #E89E9D; }
+    .bg-kawaii-blue { background-color: #79A3B1; }
+    .bg-kawaii-yellow { background-color: #E6C073; }
+    .text-kawaii-dark { color: #4A4A4A; }
+    .border-kawaii { border-color: #E8E4D9; }
+
+    /* 白邊貼圖風格 (當圖片失效時的備用可愛樣式) */
+    .sticker-emoji {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 5px solid white;
+      border-radius: 50%;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      width: 110px;
+      height: 110px;
+      font-size: 4rem;
+      margin: 0 auto;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
   </style>
 </head>
 <body>
-  <div id="app" class="max-w-md mx-auto bg-[#F9F8F6] min-h-screen shadow-xl relative overflow-hidden flex flex-col">
+  <div id="app" class="max-w-md mx-auto bg-[#FCFAF5] min-h-screen shadow-xl relative overflow-hidden flex flex-col">
     
-    <!-- 頂部導航列 (非首頁時顯示) -->
-    <header v-if="currentView !== 'home'" class="bg-morandi-green text-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-sm rounded-b-2xl">
-      <button v-if="currentView !== 'trip'" @click="currentView = 'home'" class="text-xl px-2">🔙</button>
-      <button v-else @click="exitTrip" class="text-xl px-2">🏠</button>
+    <header v-if="currentView !== 'home'" class="bg-kawaii-green text-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-md rounded-b-3xl">
+      <button v-if="currentView !== 'trip'" @click="currentView = 'home'" class="text-xl px-2 active:scale-90 transition">🔙</button>
+      <button v-else @click="exitTrip" class="text-xl px-2 active:scale-90 transition">🏠</button>
       
-      <h1 class="text-lg font-bold truncate px-2 flex-1 text-center">
-        {{ currentView === 'trip' ? (activeTrip ? activeTrip.name : '旅程') : pageTitle }}
+      <h1 class="text-lg font-bold truncate px-2 flex-1 text-center tracking-wide">
+        {{ currentView === 'trip' ? (activeTrip ? activeTrip.name : '旅のしおり') : pageTitle }}
       </h1>
       
-      <div class="w-8"></div> <!-- 平衡版面用 -->
+      <div class="w-8"></div>
     </header>
 
     <main class="flex-1 overflow-y-auto no-scrollbar pb-6 relative">
       
       <!-- 視圖 0: 首頁 (選單) -->
-      <div v-if="currentView === 'home'" class="flex flex-col items-center justify-center min-h-screen p-6 space-y-8 bg-[#F0EFEB]">
-        <div class="text-center mb-6">
-          <div class="text-6xl mb-4 animate-bounce">🧳</div>
-          <h1 class="text-3xl font-bold text-morandi-dark tracking-wider">我們的旅途</h1>
-          <p class="text-sm text-gray-500 mt-2">✨ 一起規劃美好的回憶 ✨</p>
+      <div v-if="currentView === 'home'" class="flex flex-col items-center justify-center min-h-screen p-6 space-y-8 bg-[#F8F4E6]">
+        <div class="text-center mb-2">
+          <!-- 嘗試載入日本素材，若失敗則顯示自製白邊貼圖 -->
+          <img src="https://1.bp.blogspot.com/-W2rO04hJ3sM/X2L_63eZcZI/AAAAAAABbB4/kGjJzK3Uu0QjK1t3sQ3_uQ-2_s8_X0X3QCNcBGAsYHQ/s400/travel_guide.png" 
+               class="w-32 h-32 object-contain mx-auto mb-4 animate-bounce" 
+               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+          <div class="sticker-emoji hidden mb-4">🧳</div>
+          
+          <h1 class="text-3xl font-bold text-kawaii-dark tracking-wider">我們的旅途</h1>
+          <p class="text-sm text-gray-400 mt-2 font-bold">✨ 一起寫下專屬的旅行手帳 ✨</p>
         </div>
 
         <div class="w-full space-y-5">
-          <button @click="currentView = 'create'" class="w-full bg-morandi-pink text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
-            ✨ 創建旅程
+          <button @click="currentView = 'create'" class="w-full bg-kawaii-pink text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
+            ✏️ 創建旅程
           </button>
-          <button @click="currentView = 'join'" class="w-full bg-morandi-blue text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
-            🤝 參與旅程
+          <button @click="currentView = 'join'" class="w-full bg-kawaii-blue text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
+            🤝 參與旅伴的旅程
           </button>
-          <button @click="currentView = 'joined_list'" class="w-full bg-morandi-taupe text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
-            📖 已加入的旅程
+          <button @click="currentView = 'joined_list'" class="w-full bg-kawaii-yellow text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
+            📖 翻開我的背包
           </button>
         </div>
       </div>
 
       <!-- 視圖 1: 已加入的旅程 -->
       <div v-if="currentView === 'joined_list'" class="p-5 animate-fade-in">
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-morandi">
-          <h2 class="text-lg font-bold mb-4 flex items-center gap-2">🎒 我的旅行背包</h2>
-          <div v-if="joinedTrips.length === 0" class="text-gray-400 text-center py-6 text-sm">
-            📭 尚無記錄，快去加入或創建吧！
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-kawaii">
+          <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-kawaii-dark">🎒 我的旅行背包</h2>
+          
+          <div v-if="joinedTrips.length === 0" class="text-gray-400 text-center py-8 text-sm flex flex-col items-center">
+            <img src="https://1.bp.blogspot.com/-8c7quQjxPtM/Xlc113Fq8oI/AAAAAAABXbU/sQf6lP6OaU4gR5G5rU4_a3hV7D_mS6QawCNcBGAsYHQ/s400/empty_box.png" 
+                 class="w-24 h-24 mb-4 opacity-70"
+                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+            <div class="sticker-emoji hidden mb-4 opacity-80" style="width: 80px; height: 80px; font-size: 2.5rem;">📭</div>
+            背包空空的，快去加入或創建吧！
           </div>
+          
           <div v-else class="space-y-3">
             <button v-for="tripCode in joinedTrips" :key="tripCode" @click="enterTrip(tripCode)" 
-                    class="w-full text-left p-4 bg-[#F9F8F6] border border-morandi rounded-2xl active:bg-gray-100 transition flex justify-between items-center">
+                    class="w-full text-left p-4 bg-[#FCFAF5] border border-kawaii rounded-2xl active:bg-gray-100 transition flex justify-between items-center shadow-sm">
               <div>
-                <div class="font-bold text-morandi-dark">{{ db[tripCode]?.name || '未知旅程' }}</div>
-                <div class="text-xs text-gray-400 mt-1">碼: {{ tripCode }}</div>
+                <div class="font-bold text-kawaii-dark text-lg">{{ db[tripCode]?.name || '未知旅程' }}</div>
+                <div class="text-xs text-gray-400 mt-1">手帳代碼: {{ tripCode }}</div>
               </div>
-              <span class="text-2xl">✈️</span>
+              <span class="text-2xl bg-white p-2 rounded-full shadow-sm">✈️</span>
             </button>
           </div>
         </div>
@@ -87,24 +120,30 @@
 
       <!-- 視圖 2: 參與旅程 -->
       <div v-if="currentView === 'join'" class="p-5">
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-morandi space-y-4">
-          <div class="text-center mb-2"><span class="text-4xl">🎫</span></div>
-          <h2 class="text-lg font-bold text-center mb-4">輸入車票資訊</h2>
-          
-          <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">🔑 旅程碼 (6-10碼)</label>
-            <input v-model="joinForm.tripCode" placeholder="向創建者索取" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-blue">
-          </div>
-          <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">👤 設定專屬用戶碼 (登入用)</label>
-            <input v-model="joinForm.userCode" placeholder="如: alice123" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-blue">
-          </div>
-          <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">📛 你的個人稱呼</label>
-            <input v-model="joinForm.userName" placeholder="如: 愛麗絲" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-blue">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-kawaii space-y-4 relative">
+          <div class="text-center mb-2">
+            <img src="https://1.bp.blogspot.com/-tVeC6En4e_E/X96mhDTzJmI/AAAAAAABdBo/jlD_jvZvMuk3qUcNjA_XORrA4w3lhPkdQCNcBGAsYHQ/s400/shiori_travel.png" 
+                 class="w-28 h-28 object-contain mx-auto mb-2"
+                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+            <div class="sticker-emoji hidden mb-2" style="width: 90px; height: 90px; font-size: 3rem;">🎫</div>
           </div>
           
-          <button @click="joinTrip" class="w-full bg-morandi-blue text-white py-3 mt-4 rounded-full font-bold shadow-md flex justify-center items-center gap-2">
+          <h2 class="text-lg font-bold text-center mb-4 text-kawaii-dark">輸入乘車券資訊</h2>
+          
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">🔑 旅程碼 (6-10碼)</label>
+            <input v-model="joinForm.tripCode" placeholder="向創建者索取" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-blue">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">👤 設定專屬用戶碼 (登入用)</label>
+            <input v-model="joinForm.userCode" placeholder="如: alice123" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-blue">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">📛 你的個人稱呼</label>
+            <input v-model="joinForm.userName" placeholder="如: 愛麗絲" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-blue">
+          </div>
+          
+          <button @click="joinTrip" class="w-full bg-kawaii-blue text-white py-3 mt-4 rounded-full font-bold shadow-md flex justify-center items-center gap-2 active:scale-95 transition">
             🚀 出發去！
           </button>
         </div>
@@ -112,32 +151,37 @@
 
       <!-- 視圖 3: 創建旅程 -->
       <div v-if="currentView === 'create'" class="p-5">
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-morandi space-y-4">
-          <div class="text-center mb-2"><span class="text-4xl">🗺️</span></div>
-          <h2 class="text-lg font-bold text-center mb-4">描繪新藍圖</h2>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-kawaii space-y-4">
+          <div class="text-center mb-2">
+             <img src="https://1.bp.blogspot.com/-9_W6Bw3tBv0/X_6_5_8_2_X/AAAAAAAB_1_2/X_X_X_X/s400/travel_kaban.png" 
+                 class="w-28 h-28 object-contain mx-auto mb-2"
+                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+            <div class="sticker-emoji hidden mb-2" style="width: 90px; height: 90px; font-size: 3rem;">🗺️</div>
+          </div>
+          <h2 class="text-lg font-bold text-center mb-4 text-kawaii-dark">描繪新藍圖</h2>
 
           <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">🏷️ 旅程名稱</label>
-            <input v-model="createForm.name" placeholder="如: 沖繩五天四夜悠閒遊" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-pink">
+            <label class="text-xs font-bold text-gray-400 ml-1">🏷️ 旅程名稱</label>
+            <input v-model="createForm.name" placeholder="如: 沖繩五天四夜悠閒遊" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
           </div>
           <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">🔢 總天數</label>
-            <input v-model.number="createForm.days" type="number" placeholder="如: 5" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-pink">
+            <label class="text-xs font-bold text-gray-400 ml-1">🔢 總天數</label>
+            <input v-model.number="createForm.days" type="number" placeholder="如: 5" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
           </div>
           <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">🔑 自訂旅程碼 (6-10位英數)</label>
-            <input v-model="createForm.tripCode" placeholder="如: okinawa24" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-pink">
+            <label class="text-xs font-bold text-gray-400 ml-1">🔑 自訂旅程碼 (6-10位英數)</label>
+            <input v-model="createForm.tripCode" placeholder="如: okinawa24" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
           </div>
           <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">👑 你的用戶碼 (創建者)</label>
-            <input v-model="createForm.userCode" placeholder="如: bob456" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-pink">
+            <label class="text-xs font-bold text-gray-400 ml-1">👑 你的用戶碼 (創建者)</label>
+            <input v-model="createForm.userCode" placeholder="如: bob456" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
           </div>
           <div>
-            <label class="text-xs font-bold text-gray-500 ml-1">📛 你的個人稱呼</label>
-            <input v-model="createForm.userName" placeholder="如: 團長鮑伯" class="w-full p-3 mt-1 bg-[#F9F8F6] border border-morandi rounded-2xl focus:outline-none focus:border-morandi-pink">
+            <label class="text-xs font-bold text-gray-400 ml-1">📛 你的個人稱呼</label>
+            <input v-model="createForm.userName" placeholder="如: 團長鮑伯" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
           </div>
 
-          <button @click="createTrip" class="w-full bg-morandi-pink text-white py-3 mt-4 rounded-full font-bold shadow-md flex justify-center items-center gap-2">
+          <button @click="createTrip" class="w-full bg-kawaii-pink text-white py-3 mt-4 rounded-full font-bold shadow-md flex justify-center items-center gap-2 active:scale-95 transition">
             ✨ 施展魔法創建
           </button>
         </div>
@@ -146,96 +190,100 @@
       <!-- 視圖 4: 旅程內頁 -->
       <div v-if="currentView === 'trip' && activeTrip" class="flex flex-col">
         
-        <!-- 內部可愛選單 (膠囊風格) -->
-        <div class="flex overflow-x-auto no-scrollbar bg-white p-3 space-x-2 border-b border-morandi sticky top-0 z-10 shadow-sm">
-          <button @click="activeTab = 'itinerary'" :class="activeTab === 'itinerary' ? 'bg-morandi-green text-white' : 'bg-[#F0EFEB] text-gray-500'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">🗓️ 行程</button>
-          <button @click="activeTab = 'tbd'" :class="activeTab === 'tbd' ? 'bg-morandi-pink text-white' : 'bg-[#F0EFEB] text-gray-500'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">🤔 待定</button>
-          <button @click="activeTab = 'expenses'" :class="activeTab === 'expenses' ? 'bg-morandi-blue text-white' : 'bg-[#F0EFEB] text-gray-500'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">💸 消費</button>
-          <button @click="activeTab = 'budget'" :class="activeTab === 'budget' ? 'bg-morandi-taupe text-white' : 'bg-[#F0EFEB] text-gray-500'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">👛 預算</button>
-          <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-[#98A6AD] text-white' : 'bg-[#F0EFEB] text-gray-500'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">👯 成員</button>
+        <!-- 可愛導覽列 -->
+        <div class="flex overflow-x-auto no-scrollbar bg-white p-3 space-x-3 border-b border-kawaii sticky top-0 z-10 shadow-sm rounded-b-xl">
+          <button @click="activeTab = 'itinerary'" :class="activeTab === 'itinerary' ? 'bg-kawaii-green text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">🗓️ 行程</button>
+          <button @click="activeTab = 'tbd'" :class="activeTab === 'tbd' ? 'bg-kawaii-pink text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">🤔 待定</button>
+          <button @click="activeTab = 'expenses'" :class="activeTab === 'expenses' ? 'bg-kawaii-blue text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">💸 消費</button>
+          <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-kawaii-yellow text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">👯 成員</button>
         </div>
 
         <div class="p-4">
           <!-- 頁籤: 行程 -->
           <div v-if="activeTab === 'itinerary'" class="space-y-4">
-            <div class="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-morandi">
-              <select v-model="activeDay" class="p-2 bg-transparent font-bold text-morandi-dark focus:outline-none outline-none flex-1 appearance-none text-center">
+            <div class="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-kawaii">
+              <select v-model="activeDay" class="p-2 bg-transparent font-bold text-kawaii-dark focus:outline-none outline-none flex-1 appearance-none text-center text-lg">
                 <option v-for="d in activeTrip.days" :value="d">☀️ 第 {{ d }} 天</option>
               </select>
-              <button v-if="isCreator" @click="exportDay" class="text-xs bg-gray-200 text-gray-700 px-3 py-2 rounded-xl mr-1">📤 匯出</button>
+              <button v-if="isCreator" @click="exportDay" class="text-xs bg-gray-100 text-gray-600 px-3 py-2 rounded-xl mr-1 font-bold">📤 匯出</button>
             </div>
             
-            <!-- 行程列表 -->
             <div class="space-y-3">
-              <div v-for="item in currentDayItems" :key="item.id" class="p-4 border border-morandi rounded-3xl shadow-sm bg-white relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-2 h-full" :class="getCategoryColor(item.category)"></div>
+              <div v-for="item in currentDayItems" :key="item.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-3 h-full" :class="getCategoryColor(item.category)"></div>
                 <div class="pl-2">
                   <div class="flex justify-between items-start mb-1">
-                    <span class="text-xs font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded-lg">{{ getCategoryEmoji(item.category) }} {{ item.category }}</span>
-                    <div class="space-x-3 text-sm">
-                      <button @click="editItem(item)" class="text-morandi-blue font-bold">✏️</button>
+                    <span class="text-xs font-bold px-2 py-1 bg-[#FCFAF5] text-gray-600 rounded-lg border border-gray-100">{{ getCategoryEmoji(item.category) }} {{ item.category }}</span>
+                    <div v-if="isCreator" class="space-x-3 text-sm">
+                      <button @click="editItem(item)" class="text-kawaii-blue font-bold">✏️</button>
                       <button @click="deleteItem(item.id)" class="text-red-400 font-bold">🗑️</button>
                     </div>
                   </div>
-                  <h3 class="font-bold text-lg mt-1 text-morandi-dark">{{ item.title }}</h3>
+                  <h3 class="font-bold text-lg mt-1 text-kawaii-dark">{{ item.title }}</h3>
                   
                   <div class="mt-2 space-y-1">
-                    <p class="text-sm text-gray-500 flex items-center gap-1" v-if="item.startTime || item.endTime">
+                    <p class="text-sm text-gray-500 flex items-center gap-1 font-bold" v-if="item.startTime || item.endTime">
                       🕒 {{ item.startTime || '?' }} - {{ item.endTime || '?' }} 
-                      <span v-if="item.startTime && item.endTime" class="text-xs bg-gray-100 px-1 rounded ml-1">({{ calculateDuration(item.startTime, item.endTime) }})</span>
+                      <span v-if="item.startTime && item.endTime" class="text-xs bg-[#FCFAF5] px-1 rounded ml-1 text-gray-400">({{ calculateDuration(item.startTime, item.endTime) }})</span>
                     </p>
-                    <p class="text-sm text-gray-600 mt-1 bg-[#F9F8F6] p-2 rounded-xl" v-if="item.desc">📝 {{ item.desc }}</p>
-                    <p class="text-sm text-morandi-pink font-bold mt-1" v-if="item.cost">💰 預計消費: {{ item.cost }}</p>
-                    <a v-if="item.link" :href="item.link" target="_blank" class="inline-block text-xs text-white bg-morandi-blue px-3 py-1 rounded-full mt-2 no-underline">📍 開啟地圖</a>
+                    <p class="text-sm text-gray-600 mt-2 bg-[#F8F4E6] p-3 rounded-2xl" v-if="item.desc">📝 {{ item.desc }}</p>
+                    <a v-if="item.link" :href="item.link" target="_blank" class="inline-block text-xs text-white bg-kawaii-blue px-3 py-1.5 rounded-full mt-2 no-underline shadow-sm">📍 開啟地圖</a>
                   </div>
                   
-                  <div class="text-[10px] text-gray-300 mt-3 text-right">建立者: {{ item.creatorName }}</div>
+                  <div class="text-[10px] text-gray-400 mt-3 text-right">建立者: {{ item.creatorName }}</div>
                 </div>
               </div>
+              
+              <!-- 無行程時的可愛插圖空狀態 -->
               <div v-if="currentDayItems.length === 0" class="text-center text-gray-400 py-10 flex flex-col items-center">
-                <span class="text-4xl mb-2">🍃</span>
-                本日尚無行程，快來安排吧！
+                 <img src="https://1.bp.blogspot.com/-0Bv3F4H1N-o/Xv_n_YvK30I/AAAAAAABZ_s/o_q_e_X_n_k_X_X_X_X_X_X/s400/travel_shiori.png" 
+                     class="w-24 h-24 mb-3 opacity-80"
+                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                <div class="sticker-emoji hidden mb-3 opacity-80" style="width: 80px; height: 80px; font-size: 2.5rem;">🍃</div>
+                <span class="font-bold">本日尚無行程，快來安排吧！</span>
               </div>
             </div>
 
-            <!-- 新增/編輯行程表單 -->
-            <div class="bg-white p-5 rounded-3xl border border-morandi shadow-sm mt-4">
-              <h3 class="font-bold mb-3 flex items-center gap-2 text-morandi-dark">
-                {{ editingItem ? '✏️ 更改行程' : '✨ 新增行程' }}
+            <div class="bg-white p-5 rounded-3xl border border-kawaii shadow-sm mt-4">
+              <h3 class="font-bold mb-3 flex items-center gap-2 text-kawaii-dark text-lg">
+                {{ editingItem ? '✏️ 修改手帳' : '✨ 寫下手帳' }}
               </h3>
               
+              <div v-if="!isCreator && editingItem" class="text-xs text-amber-600 bg-amber-50 p-2 rounded-xl mb-2 font-bold">
+                🔒 只有旅程創建者才可以更改喔。
+              </div>
+
               <div class="space-y-3">
-                <input v-model="itemForm.title" placeholder="📌 行程名稱 (必填)" class="w-full p-3 bg-[#F0EFEB] border-none rounded-xl text-sm focus:ring-2 ring-morandi-green outline-none">
+                <input v-model="itemForm.title" placeholder="📌 行程名稱 (必填)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm focus:ring-2 ring-kawaii-green outline-none font-bold">
                 
                 <div class="flex gap-2">
-                  <select v-model="itemForm.category" class="w-1/2 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
+                  <select v-model="itemForm.category" class="w-1/2 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold text-gray-600">
                     <option>景點</option><option>餐廳</option><option>交通</option><option>住宿</option><option>其他</option>
                   </select>
-                  <select v-model="itemForm.day" class="w-1/2 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
+                  <select v-model="itemForm.day" class="w-1/2 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold text-gray-600">
                     <option :value="null">🤔 待定 (無日期)</option>
                     <option v-for="d in activeTrip.days" :value="d">☀️ 第 {{ d }} 天</option>
                   </select>
                 </div>
                 
-                <div class="flex gap-2 items-center bg-[#F0EFEB] p-2 rounded-xl">
-                  <span class="text-xs text-gray-500 pl-1">時間</span>
-                  <input v-model="itemForm.startTime" type="time" class="flex-1 p-2 bg-white rounded-lg text-sm border-none outline-none">
-                  <span class="text-gray-400">-</span>
-                  <input v-model="itemForm.endTime" type="time" class="flex-1 p-2 bg-white rounded-lg text-sm border-none outline-none">
+                <div class="flex gap-2 items-center bg-[#FCFAF5] border border-kawaii p-2 rounded-xl">
+                  <span class="text-xs font-bold text-gray-400 pl-1">時間</span>
+                  <input v-model="itemForm.startTime" type="time" class="flex-1 p-2 bg-white rounded-lg text-sm border-none outline-none font-bold text-gray-600">
+                  <span class="text-gray-300">-</span>
+                  <input v-model="itemForm.endTime" type="time" class="flex-1 p-2 bg-white rounded-lg text-sm border-none outline-none font-bold text-gray-600">
                 </div>
                 
-                <textarea v-model="itemForm.desc" placeholder="📝 描述 (選填)" class="w-full p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none h-20 resize-none"></textarea>
+                <textarea v-model="itemForm.desc" placeholder="📝 隨手記點什麼 (選填)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none h-20 resize-none"></textarea>
                 
                 <div class="flex gap-2">
-                  <input v-model="itemForm.cost" placeholder="💰 預估消費 (選填)" class="w-1/2 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
-                  <input v-model="itemForm.link" placeholder="📍 地圖連結 (選填)" class="w-1/2 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
+                  <input v-model="itemForm.link" placeholder="📍 地圖連結 (選填)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none">
                 </div>
                 
                 <div class="flex gap-2 pt-2">
-                  <button @click="saveItem" class="flex-1 bg-morandi-green text-white py-3 rounded-full font-bold text-sm shadow-md">
-                    {{ editingItem ? '💾 儲存更改' : '➕ 加入行程' }}
+                  <button @click="saveItem" class="flex-1 bg-kawaii-green text-white py-3 rounded-full font-bold text-sm shadow-md active:scale-95 transition">
+                    {{ editingItem ? '💾 儲存手帳' : '➕ 貼上手帳' }}
                   </button>
-                  <button v-if="editingItem" @click="cancelEdit" class="w-1/3 bg-gray-200 text-gray-600 py-3 rounded-full text-sm font-bold">取消</button>
+                  <button v-if="editingItem" @click="cancelEdit" class="w-1/3 bg-gray-100 text-gray-500 py-3 rounded-full text-sm font-bold">取消</button>
                 </div>
               </div>
             </div>
@@ -243,194 +291,166 @@
 
           <!-- 頁籤: 待定行程 -->
           <div v-if="activeTab === 'tbd'" class="space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-morandi mb-2 text-center text-sm text-gray-500">
-              這裡存放還沒決定日期的行程點子 💡
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-kawaii mb-2 text-center text-sm font-bold text-gray-400">
+              這裡存放還沒決定日期的好點子 💡
             </div>
             
             <div class="space-y-3">
-              <div v-for="item in tbdItems" :key="item.id" class="p-4 border border-morandi rounded-3xl shadow-sm bg-white">
+              <div v-for="item in tbdItems" :key="item.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white">
                 <div class="flex justify-between items-start mb-2">
-                  <span class="text-xs font-bold px-2 py-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-lg">{{ getCategoryEmoji(item.category) }} {{ item.category }}</span>
+                  <span class="text-xs font-bold px-2 py-1 bg-yellow-50 text-yellow-600 border border-yellow-100 rounded-lg">{{ getCategoryEmoji(item.category) }} {{ item.category }}</span>
                   <div class="space-x-3 text-sm">
-                    <button @click="editItem(item); activeTab='itinerary'" class="text-morandi-blue font-bold">📅 安排</button>
-                    <button @click="deleteItem(item.id)" class="text-red-400 font-bold">🗑️</button>
+                    <button v-if="isCreator" @click="editItem(item); activeTab='itinerary'" class="text-kawaii-blue font-bold bg-blue-50 px-2 py-1 rounded-lg">📅 安排</button>
+                    <button v-if="isCreator" @click="deleteItem(item.id)" class="text-red-400 font-bold bg-red-50 px-2 py-1 rounded-lg">🗑️</button>
                   </div>
                 </div>
-                <h3 class="font-bold text-morandi-dark">{{ item.title }}</h3>
-                <p class="text-xs text-gray-500 mt-1" v-if="item.desc">{{ item.desc }}</p>
+                <h3 class="font-bold text-kawaii-dark">{{ item.title }}</h3>
+                <p class="text-xs text-gray-500 mt-2 bg-[#F8F4E6] p-2 rounded-xl" v-if="item.desc">{{ item.desc }}</p>
                 <div class="text-[10px] text-gray-300 mt-3 text-right">建立者: {{ item.creatorName }}</div>
               </div>
               <div v-if="tbdItems.length === 0" class="text-center text-gray-400 py-10 flex flex-col items-center">
-                <span class="text-4xl mb-2">📦</span>
-                目前沒有待定行程
+                 <img src="https://1.bp.blogspot.com/-V15J-IiyKow/W_UV1Ww6qCI/AAAAAAABQSU/wDkRjB4k_2Q1M5s5Q_w_w_w_w_w/s400/thinking_face.png" 
+                     class="w-24 h-24 mb-3 opacity-70"
+                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                <div class="sticker-emoji hidden mb-3 opacity-80" style="width: 80px; height: 80px; font-size: 2.5rem;">🤔</div>
+                <span class="font-bold">目前沒有待定行程</span>
               </div>
             </div>
           </div>
 
           <!-- 頁籤: 消費 -->
           <div v-if="activeTab === 'expenses'" class="space-y-4">
-            <div class="flex p-1 bg-white rounded-full shadow-sm border border-morandi">
-              <button @click="expenseType = 'personal'" :class="expenseType==='personal' ? 'bg-morandi-blue text-white shadow':'text-gray-500'" class="flex-1 py-2 rounded-full text-sm font-bold transition">🙋 個人記帳</button>
-              <button @click="expenseType = 'group'" :class="expenseType==='group' ? 'bg-morandi-blue text-white shadow':'text-gray-500'" class="flex-1 py-2 rounded-full text-sm font-bold transition">👨‍👩‍👧‍👦 團體公費</button>
+            <div class="flex p-1 bg-white rounded-full shadow-sm border border-kawaii">
+              <button @click="expenseType = 'personal'" :class="expenseType==='personal' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">🙋 私房錢</button>
+              <button @click="expenseType = 'group'" :class="expenseType==='group' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">👨‍👩‍👧‍👦 公費</button>
             </div>
             
             <div class="space-y-3">
-              <div v-for="exp in filteredExpenses" :key="exp.id" class="p-4 border border-morandi rounded-3xl shadow-sm bg-white relative overflow-hidden">
-                <div class="absolute left-0 top-0 w-2 h-full" :class="expenseType==='group' ? 'bg-morandi-pink' : 'bg-morandi-blue'"></div>
+              <div v-for="exp in filteredExpenses" :key="exp.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
+                <div class="absolute left-0 top-0 w-3 h-full" :class="expenseType==='group' ? 'bg-kawaii-pink' : 'bg-kawaii-blue'"></div>
                 <div class="pl-2">
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-lg text-morandi-dark">{{ exp.desc }}</span>
-                    <span class="text-morandi-pink font-bold text-lg">{{ exp.currency }} {{ exp.amount }}</span>
+                  <div class="flex justify-between items-start mb-1">
+                    <div>
+                      <span class="font-bold text-lg text-kawaii-dark">{{ exp.desc }}</span>
+                      <p v-if="exp.detailDesc" class="text-xs text-gray-500 mt-1">📝 {{ exp.detailDesc }}</p>
+                    </div>
+                    <span class="text-kawaii-pink font-bold text-xl">{{ exp.currency }} {{ exp.amount }}</span>
                   </div>
-                  <div class="text-xs text-gray-500 flex flex-wrap gap-2 mt-2">
-                    <span class="bg-[#F0EFEB] px-2 py-1 rounded">📅 {{ exp.date }} {{ exp.time }}</span>
-                    <span class="bg-[#F0EFEB] px-2 py-1 rounded">🏷️ {{ exp.category }}</span>
-                    <span v-if="exp.type === 'group' && exp.split" class="bg-yellow-50 text-yellow-700 px-2 py-1 rounded border border-yellow-100">➗ {{ exp.split }}人平分</span>
+                  <div class="text-xs text-gray-500 flex flex-wrap gap-2 mt-2 font-bold">
+                    <span class="bg-[#FCFAF5] border border-gray-100 px-2 py-1 rounded-md">📅 {{ exp.date }} {{ exp.time }}</span>
+                    <span class="bg-[#FCFAF5] border border-gray-100 px-2 py-1 rounded-md text-kawaii-blue">🏷️ {{ exp.category }}</span>
                   </div>
                   <div class="flex justify-between items-end mt-3">
                     <span class="text-[10px] text-gray-400" v-if="exp.type === 'group'">👤 記錄者: {{ exp.creatorName }}</span>
-                    <span class="text-[10px] text-gray-400" v-else>🙋 我的個人記帳</span>
-                    <button v-if="canDeleteExpense(exp)" @click="deleteExpense(exp.id)" class="text-xs bg-red-50 text-red-500 px-2 py-1 rounded-lg">刪除</button>
+                    <span class="text-[10px] text-gray-400" v-else>🙋 我的私房錢</span>
+                    
+                    <div class="space-x-2">
+                      <button v-if="exp.type === 'group' && isCreator" @click="editExpense(exp)" class="text-xs font-bold bg-blue-50 text-kawaii-blue px-3 py-1.5 rounded-lg">編輯</button>
+                      <button v-if="canDeleteExpense(exp)" @click="deleteExpense(exp.id)" class="text-xs font-bold bg-red-50 text-red-400 px-3 py-1.5 rounded-lg">刪除</button>
+                    </div>
                   </div>
                 </div>
               </div>
               <div v-if="filteredExpenses.length === 0" class="text-center text-gray-400 py-10 flex flex-col items-center">
-                <span class="text-4xl mb-2">💸</span>
-                {{ expenseType === 'personal' ? '你的個人帳本還沒有記錄喔！' : '還沒有團體公費記錄喔！' }}
+                 <img src="https://1.bp.blogspot.com/-kOseN9N6j-U/VvX_Q160xEI/AAAAAAAA5R8/k88G-h7E2v8FkM4Q7qG4v0_9_8_7_6_5/s400/money_wallet.png" 
+                     class="w-24 h-24 mb-3 opacity-70"
+                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                <div class="sticker-emoji hidden mb-3 opacity-80" style="width: 80px; height: 80px; font-size: 2.5rem;">👛</div>
+                <span class="font-bold">{{ expenseType === 'personal' ? '錢包空空，還沒記錄喔！' : '公費還沒有支出記錄喔！' }}</span>
               </div>
             </div>
 
-            <div class="bg-white p-5 rounded-3xl border border-morandi shadow-sm mt-4">
-              <h3 class="font-bold mb-3 text-morandi-dark flex items-center gap-2">
-                ✍️ 新增{{ expenseType === 'personal' ? '個人' : '團體' }}記帳
+            <div class="bg-white p-5 rounded-3xl border border-kawaii shadow-sm mt-4">
+              <h3 class="font-bold mb-3 text-kawaii-dark flex items-center gap-2 text-lg">
+                {{ editingExpense ? '✏️ 修改帳本' : (expenseType === 'personal' ? '✍️ 記一筆私房錢' : '✍️ 記一筆公費') }}
               </h3>
               
+              <div v-if="expenseType === 'group' && !isCreator && !editingExpense" class="text-xs text-kawaii-blue bg-blue-50 p-2 rounded-xl mb-2 font-bold">
+                💡 成員可幫忙記帳，但只有創建者可修改。
+              </div>
+
               <div class="space-y-3">
                 <div class="flex gap-2">
-                  <input v-model="expenseForm.date" type="date" class="w-[55%] p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none text-gray-600">
-                  <input v-model="expenseForm.time" type="time" class="w-[45%] p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none text-gray-600">
+                  <input v-model="expenseForm.date" type="date" class="w-[55%] p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none text-gray-600 font-bold">
+                  <input v-model="expenseForm.time" type="time" class="w-[45%] p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none text-gray-600 font-bold">
                 </div>
                 
                 <div class="flex gap-2">
-                  <select v-model="expenseForm.currency" class="w-1/3 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none font-bold">
-                    <option>HKD</option>
-                    <option>TWD</option>
-                    <option>CNY</option>
-                    <option>THB</option>
-                    <option>VND</option>
-                    <option>JPY</option>
-                    <option>KRW</option>
-                    <option>USD</option>
-                    <option>EUR</option>
+                  <select v-model="expenseForm.currency" class="w-1/3 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold text-gray-500">
+                    <option>HKD</option><option>TWD</option><option>JPY</option><option>KRW</option><option>CNY</option><option>THB</option><option>USD</option><option>EUR</option>
                   </select>
-                  <input v-model.number="expenseForm.amount" type="number" placeholder="💰 金額" class="w-2/3 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none font-bold text-morandi-pink">
+                  <input v-model.number="expenseForm.amount" type="number" placeholder="💰 金額" class="w-2/3 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-lg outline-none font-bold text-kawaii-pink">
                 </div>
                 
-                <input v-model="expenseForm.desc" placeholder="🛒 消費描述 (如: 晚餐、車票)" class="w-full p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
+                <input v-model="expenseForm.desc" placeholder="🛒 買了什麼？ (如: 壽司、車票)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
                 
-                <div class="flex gap-2">
-                  <input v-model="expenseForm.category" placeholder="🏷️ 分類" class="flex-1 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
-                  <input v-if="expenseType === 'group'" v-model.number="expenseForm.split" type="number" placeholder="➗ 成員數" class="w-1/3 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
-                </div>
+                <input v-model="expenseForm.detailDesc" placeholder="📝 詳細備註 (選填，例如分攤給誰)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none">
                 
-                <button @click="addExpense" class="w-full bg-morandi-blue text-white py-3 mt-2 rounded-full font-bold text-sm shadow-md">
-                  ➕ 新增記錄
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 頁籤: 預算 -->
-          <div v-if="activeTab === 'budget'" class="space-y-4">
-            <div class="bg-morandi-taupe text-white p-5 rounded-3xl shadow-sm flex items-center justify-between">
-              <div>
-                <div class="text-sm opacity-80 mb-1">旅行總預算項目數</div>
-                <div class="text-2xl font-bold">{{ activeTrip.budgets.length }} 項</div>
-              </div>
-              <span class="text-4xl">👛</span>
-            </div>
-
-            <div class="space-y-2">
-              <div v-for="b in activeTrip.budgets" :key="b.id" class="flex justify-between items-center p-4 bg-white border border-morandi rounded-2xl shadow-sm">
-                <span class="font-bold text-morandi-dark flex items-center gap-2">📌 {{ b.item }}</span>
-                <div class="flex items-center gap-4">
-                  <span class="font-bold text-morandi-taupe">{{ b.amount }}</span>
-                  <button v-if="isCreator" @click="deleteBudget(b.id)" class="text-red-400 bg-red-50 p-2 rounded-full leading-none">✕</button>
+                <input v-model="expenseForm.category" placeholder="🏷️ 標籤分類 (如: 吃喝、交通)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none">
+                
+                <div class="flex gap-2 pt-2">
+                  <button @click="saveExpense" class="flex-1 bg-kawaii-blue text-white py-3 rounded-full font-bold text-sm shadow-md active:scale-95 transition">
+                    {{ editingExpense ? '💾 儲存修改' : '➕ 寫入帳本' }}
+                  </button>
+                  <button v-if="editingExpense" @click="cancelEditExpense" class="w-1/3 bg-gray-100 text-gray-500 py-3 rounded-full text-sm font-bold">取消</button>
                 </div>
               </div>
-              <div v-if="activeTrip.budgets.length === 0" class="text-center text-gray-400 py-6 text-sm">
-                尚未設定任何預算項目
-              </div>
-            </div>
-
-            <div v-if="isCreator" class="bg-white p-4 rounded-3xl border border-morandi shadow-sm mt-4">
-              <h3 class="font-bold mb-3 text-sm text-gray-500">➕ 新增預算項目</h3>
-              <div class="flex gap-2 flex-col sm:flex-row">
-                <div class="flex gap-2 flex-1">
-                  <input v-model="budgetForm.item" placeholder="項目名稱" class="w-3/5 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
-                  <input v-model.number="budgetForm.amount" type="number" placeholder="金額" class="w-2/5 p-3 bg-[#F0EFEB] border-none rounded-xl text-sm outline-none">
-                </div>
-                <button @click="addBudget" class="bg-morandi-taupe text-white px-4 py-3 rounded-xl text-sm font-bold shadow">加入</button>
-              </div>
-            </div>
-            <div v-else class="text-xs text-center mt-6 bg-white p-3 rounded-xl border border-morandi text-gray-400">
-              🔒 只有旅程創建者可以修改預算表。
             </div>
           </div>
 
           <!-- 頁籤: 成員 -->
           <div v-if="activeTab === 'members'" class="space-y-4">
             
-            <div class="bg-white p-5 rounded-3xl shadow-sm border border-morandi text-center relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-16 h-16 bg-morandi-pink rounded-bl-full opacity-20"></div>
-              <div class="text-xs text-gray-500 mb-1 font-bold">邀請朋友加入的專屬旅程碼</div>
-              <div class="text-3xl font-bold text-morandi-blue tracking-widest my-2 select-all">{{ activeTripCode }}</div>
-              <div class="text-xs text-gray-400">長按上方代碼即可複製</div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-kawaii text-center relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-20 h-20 bg-kawaii-pink rounded-bl-full opacity-10"></div>
+              <div class="absolute bottom-0 left-0 w-16 h-16 bg-kawaii-yellow rounded-tr-full opacity-10"></div>
+              <div class="text-xs text-gray-500 mb-1 font-bold">邀請朋友的專屬手帳碼</div>
+              <div class="text-4xl font-bold text-kawaii-blue tracking-widest my-3 select-all bg-[#FCFAF5] py-2 rounded-xl border border-gray-100">{{ activeTripCode }}</div>
+              <div class="text-xs text-gray-400 font-bold">長按上方代碼即可複製</div>
             </div>
             
-            <!-- 創建者專屬：調整天數控制板 (含快速加減按鈕) -->
-            <div v-if="isCreator" class="bg-white p-4 rounded-2xl shadow-sm border border-morandi space-y-2">
+            <div v-if="isCreator" class="bg-white p-4 rounded-2xl shadow-sm border border-kawaii space-y-2">
               <div class="flex justify-between items-center">
-                <span class="text-sm font-bold text-gray-600">⚙️ 旅程總天數設定</span>
-                <span class="text-xs text-gray-400">可自由加減天數</span>
+                <span class="text-sm font-bold text-gray-600">⚙️ 旅行總天數</span>
+                <span class="text-xs text-gray-400">點擊加減天數</span>
               </div>
-              <div class="flex items-center gap-2">
-                <button @click="adjustDays(-1)" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-lg flex items-center justify-center transition active:scale-95">➖</button>
-                <div class="flex-1 bg-[#F0EFEB] py-2 rounded-xl text-center font-bold text-morandi-dark text-lg">
+              <div class="flex items-center gap-3">
+                <button @click="adjustDays(-1)" class="w-12 h-12 bg-[#FCFAF5] border border-gray-200 text-gray-500 font-bold rounded-2xl text-xl flex items-center justify-center transition active:scale-90 shadow-sm">➖</button>
+                <div class="flex-1 bg-kawaii-yellow bg-opacity-20 py-3 rounded-2xl text-center font-bold text-kawaii-dark text-xl border border-yellow-100">
                   {{ activeTrip.days }} 天
                 </div>
-                <button @click="adjustDays(1)" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-lg flex items-center justify-center transition active:scale-95">➕</button>
+                <button @click="adjustDays(1)" class="w-12 h-12 bg-[#FCFAF5] border border-gray-200 text-gray-500 font-bold rounded-2xl text-xl flex items-center justify-center transition active:scale-90 shadow-sm">➕</button>
               </div>
             </div>
 
             <div>
-              <h2 class="font-bold text-morandi-dark mb-3 px-1 flex justify-between">
-                <span>👯 旅伴名單</span>
-                <span class="text-xs bg-gray-200 px-2 py-1 rounded-full">{{ activeTrip.members.length }} / 20 人</span>
+              <h2 class="font-bold text-kawaii-dark mb-3 px-1 flex justify-between items-center">
+                <span class="text-lg">👯 旅伴名單</span>
+                <span class="text-xs bg-gray-100 font-bold text-gray-500 px-3 py-1 rounded-full">{{ activeTrip.members.length }} / 20 人</span>
               </h2>
-              <ul class="space-y-2">
-                <li v-for="m in activeTrip.members" :key="m.code" class="p-4 bg-white border border-morandi rounded-2xl flex justify-between items-center shadow-sm">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-morandi-green rounded-full text-white flex items-center justify-center font-bold text-lg">
+              <ul class="space-y-3">
+                <li v-for="m in activeTrip.members" :key="m.code" class="p-4 bg-white border border-kawaii rounded-2xl flex justify-between items-center shadow-sm relative overflow-hidden">
+                  <div v-if="m.code === activeTrip.creatorCode" class="absolute left-0 top-0 w-2 h-full bg-kawaii-yellow"></div>
+                  <div class="flex items-center gap-3 pl-1">
+                    <div class="w-12 h-12 bg-kawaii-green rounded-full text-white flex items-center justify-center font-bold text-xl shadow-inner border-2 border-white">
                       {{ m.name.charAt(0) }}
                     </div>
                     <div>
-                      <div class="font-bold text-morandi-dark flex items-center gap-2">
+                      <div class="font-bold text-kawaii-dark flex items-center gap-2 text-lg">
                         {{ m.name }}
-                        <span v-if="m.code === activeTrip.creatorCode" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full border border-yellow-200">創建者 👑</span>
+                        <span v-if="m.code === activeTrip.creatorCode" class="text-[10px] bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-md font-bold">創建者 👑</span>
                       </div>
-                      <div class="text-xs text-gray-400 mt-0.5">ID: {{ m.code }}</div>
+                      <div class="text-xs text-gray-400 mt-1 font-bold">ID: {{ m.code }}</div>
                     </div>
                   </div>
-                  <button v-if="isCreator && m.code !== activeTrip.creatorCode" @click="removeMember(m.code)" class="text-xs bg-red-50 text-red-500 p-2 rounded-xl">踢出</button>
+                  <button v-if="isCreator && m.code !== activeTrip.creatorCode" @click="removeMember(m.code)" class="text-xs font-bold bg-red-50 text-red-400 p-2 rounded-xl active:scale-90 transition">踢出</button>
                 </li>
               </ul>
             </div>
 
-            <!-- 創建者專屬刪除旅程按鈕 -->
             <div v-if="isCreator" class="pt-6">
-              <button @click="deleteTrip" class="w-full bg-red-50 text-red-500 border border-red-100 py-3 rounded-full font-bold text-sm shadow-sm hover:bg-red-100 transition flex justify-center items-center gap-2">
-                🚨 刪除整個旅程 (不可恢復)
+              <button @click="deleteTrip" class="w-full bg-red-50 text-red-400 border border-red-100 py-4 rounded-2xl font-bold text-sm shadow-sm hover:bg-red-100 transition flex justify-center items-center gap-2 active:scale-95">
+                🚨 刪除整本手帳 (不可恢復)
               </button>
             </div>
 
@@ -448,20 +468,20 @@
         return {
           db: {}, 
           joinedTrips: [], 
-          currentView: 'home', // 'home', 'create', 'join', 'joined_list', 'trip'
+          currentView: 'home', 
           currentUser: null,
           activeTripCode: null,
           activeTab: 'itinerary',
           activeDay: 1,
           expenseType: 'personal',
           editingItem: null,
+          editingExpense: null,
 
           createForm: { name: '', days: '', tripCode: '', userCode: '', userName: '' },
           joinForm: { tripCode: '', userCode: '', userName: '' },
           
           itemForm: this.getEmptyItemForm(),
-          expenseForm: this.getEmptyExpenseForm(),
-          budgetForm: { item: '', amount: '' }
+          expenseForm: this.getEmptyExpenseForm()
         }
       },
       computed: {
@@ -474,7 +494,7 @@
         pageTitle() {
           if (this.currentView === 'create') return '創建旅程';
           if (this.currentView === 'join') return '參與旅程';
-          if (this.currentView === 'joined_list') return '已加入的旅程';
+          if (this.currentView === 'joined_list') return '我的背包';
           return '';
         },
         currentDayItems() {
@@ -492,7 +512,6 @@
           if (this.expenseType === 'group') {
             return this.activeTrip.expenses.filter(e => e.type === 'group');
           } else {
-            // 個人記帳：只顯示當前用戶專屬且不相通的個人帳目
             return this.activeTrip.expenses.filter(e => e.type === 'personal' && e.creatorCode === this.currentUser.code);
           }
         }
@@ -503,21 +522,21 @@
       },
       methods: {
         loadDB() {
-          const stored = localStorage.getItem('tripDB_v3');
+          const stored = localStorage.getItem('tripDB_v6');
           if (stored) this.db = JSON.parse(stored);
-          const joined = localStorage.getItem('joinedTrips_v3');
+          const joined = localStorage.getItem('joinedTrips_v6');
           if (joined) this.joinedTrips = JSON.parse(joined);
         },
         saveDB() {
           if(this.activeTripCode && this.db[this.activeTripCode]) {
              this.db[this.activeTripCode].lastActive = Date.now();
           }
-          localStorage.setItem('tripDB_v3', JSON.stringify(this.db));
-          localStorage.setItem('joinedTrips_v3', JSON.stringify(this.joinedTrips));
+          localStorage.setItem('tripDB_v6', JSON.stringify(this.db));
+          localStorage.setItem('joinedTrips_v6', JSON.stringify(this.joinedTrips));
         },
         cleanOldData() {
           const now = Date.now();
-          const limit = 180 * 24 * 60 * 60 * 1000; // 180 days
+          const limit = 180 * 24 * 60 * 60 * 1000;
           let changed = false;
           for (const code in this.db) {
             if (now - this.db[code].lastActive > limit) {
@@ -530,22 +549,22 @@
         },
         createTrip() {
           const { name, days, tripCode, userCode, userName } = this.createForm;
-          if (!name || !days || !tripCode || !userCode || !userName) return alert('請填滿所有魔法欄位 ✨');
+          if (!name || !days || !tripCode || !userCode || !userName) return alert('請填滿所有手帳欄位 ✨');
           if (tripCode.length < 6 || tripCode.length > 10 || !/^[A-Za-z0-9]+$/.test(tripCode)) return alert('旅程碼必須是 6-10 位英數字喔！');
           if (this.db[tripCode]) return alert('哎呀！這個旅程碼已經有人用了');
 
           this.db[tripCode] = {
             name, days, creatorCode: userCode, lastActive: Date.now(),
             members: [{ code: userCode, name: userName }],
-            itineraries: [], expenses: [], budgets: []
+            itineraries: [], expenses: []
           };
           this.addToJoined(tripCode);
           this.login(tripCode, userCode, userName);
-          this.createForm = { name: '', days: '', tripCode: '', userCode: '', userName: '' }; // reset
+          this.createForm = { name: '', days: '', tripCode: '', userCode: '', userName: '' };
         },
         joinTrip() {
           const { tripCode, userCode, userName } = this.joinForm;
-          if (!tripCode || !userCode || !userName) return alert('請確認車票資訊都有填寫喔 🎫');
+          if (!tripCode || !userCode || !userName) return alert('請確認乘車券資訊都有填寫喔 🎫');
           const trip = this.db[tripCode];
           if (!trip) return alert('找不到這班車，請檢查旅程碼是否正確 🔍');
           
@@ -558,12 +577,12 @@
           }
           this.addToJoined(tripCode);
           this.login(tripCode, userCode, userName);
-          this.joinForm = { tripCode: '', userCode: '', userName: '' }; // reset
+          this.joinForm = { tripCode: '', userCode: '', userName: '' };
         },
         enterTrip(tripCode) {
           const trip = this.db[tripCode];
           if (!trip) {
-            alert('旅程已經消失在時間長河中 (可能已超過180天被刪除或被創建者移除了) 🕰️');
+            alert('這本手帳已經消失在時間長河中 🕰️');
             this.joinedTrips = this.joinedTrips.filter(c => c !== tripCode);
             this.saveDB();
             return;
@@ -583,16 +602,15 @@
           this.activeTripCode = null;
         },
         deleteTrip() {
-          if(confirm('🚨 警告：確定要刪除整個旅程嗎？\n\n此操作無法復原，所有行程、成員與記帳資料都會永久消失喔！')) {
+          if(confirm('🚨 警告：確定要丟掉這本手帳嗎？')) {
             const code = this.activeTripCode;
             delete this.db[code];
             this.joinedTrips = this.joinedTrips.filter(c => c !== code);
             this.saveDB();
             this.exitTrip();
-            alert('旅程已經成功刪除了 🗑️');
+            alert('手帳已經成功回收了 🗑️');
           }
         },
-        // 調整天數方法 (+1 / -1)
         adjustDays(amount) {
           if (!this.activeTrip) return;
           const newDays = this.activeTrip.days + amount;
@@ -601,7 +619,6 @@
             return;
           }
           this.activeTrip.days = newDays;
-          // 如果當前選中的天數大於總天數，自動切回最後一天
           if (this.activeDay > newDays) {
             this.activeDay = newDays;
           }
@@ -611,7 +628,7 @@
           if (!this.joinedTrips.includes(code)) this.joinedTrips.push(code);
         },
         removeMember(code) {
-          if(confirm('確定要將這位旅伴踢出隊伍嗎？ 🥺')) {
+          if(confirm('確定要將這位旅伴請下車嗎？ 🥺')) {
             this.activeTrip.members = this.activeTrip.members.filter(m => m.code !== code);
             this.saveDB();
           }
@@ -625,10 +642,15 @@
           return map[cat] || '📌';
         },
         getEmptyItemForm() {
-          return { id: null, title: '', category: '景點', day: 1, startTime: '', endTime: '', desc: '', cost: '', link: '' };
+          return { id: null, title: '', category: '景點', day: 1, startTime: '', endTime: '', desc: '', link: '' };
         },
         saveItem() {
           if (!this.itemForm.title) return alert('請給這個行程一個名字吧！ 🏷️');
+          
+          if (this.editingItem && !this.isCreator) {
+            return alert('🔒 只有旅程創建者才可以更改手帳內容喔！');
+          }
+
           const newItem = { 
             ...this.itemForm, 
             creatorCode: this.currentUser.code,
@@ -648,6 +670,7 @@
           this.saveDB();
         },
         editItem(item) {
+          if (!this.isCreator) return alert('🔒 只有旅程創建者才可以更改手帳內容喔！');
           this.editingItem = item;
           this.itemForm = { ...item };
           setTimeout(() => {
@@ -660,7 +683,8 @@
           this.itemForm = this.getEmptyItemForm();
         },
         deleteItem(id) {
-          if(confirm('確定要刪除這個行程嗎？ 🗑️')) {
+          if (!this.isCreator) return alert('🔒 只有旅程創建者才可以擦掉手帳內容喔！');
+          if(confirm('確定要擦掉這個行程嗎？ 🗑️')) {
             this.activeTrip.itineraries = this.activeTrip.itineraries.filter(i => i.id !== id);
             this.saveDB();
           }
@@ -680,55 +704,67 @@
           const now = new Date();
           const d = now.toISOString().split('T')[0];
           const t = now.toTimeString().split(' ')[0].substring(0,5);
-          return { date: d, time: t, currency: 'HKD', amount: '', desc: '', category: '', split: 2 };
+          return { date: d, time: t, currency: 'HKD', amount: '', desc: '', detailDesc: '', category: '' };
         },
-        addExpense() {
+        saveExpense() {
           if (!this.expenseForm.amount || !this.expenseForm.desc) return alert('金額和描述都要填寫喔 ✍️');
           
+          if (this.expenseType === 'group' && this.editingExpense && !this.isCreator) {
+            return alert('🔒 只有旅程創建者才可以更改公費帳目喔！');
+          }
+
           const newExp = {
             ...this.expenseForm,
-            id: Date.now(),
             type: this.expenseType,
             creatorCode: this.currentUser.code,
             creatorName: this.currentUser.name
           };
 
-          // 如果是個人記帳，清除平分欄位確保乾淨
-          if (this.expenseType === 'personal') {
-            delete newExp.split;
+          if (this.editingExpense) {
+            const index = this.activeTrip.expenses.findIndex(e => e.id === this.editingExpense.id);
+            if(index !== -1) {
+              this.activeTrip.expenses[index] = { ...newExp, id: this.editingExpense.id };
+            }
+            this.editingExpense = null;
+          } else {
+            newExp.id = Date.now();
+            this.activeTrip.expenses.push(newExp);
           }
 
-          this.activeTrip.expenses.push(newExp);
           this.expenseForm = this.getEmptyExpenseForm();
           this.saveDB();
         },
+        editExpense(exp) {
+          if (exp.type === 'group' && !this.isCreator) {
+            return alert('🔒 只有旅程創建者才可以更改公費帳目喔！');
+          }
+          this.editingExpense = exp;
+          this.expenseForm = { ...exp };
+          setTimeout(() => {
+            const mainEl = document.querySelector('main');
+            mainEl.scrollTop = mainEl.scrollHeight;
+          }, 100);
+        },
+        cancelEditExpense() {
+          this.editingExpense = null;
+          this.expenseForm = this.getEmptyExpenseForm();
+        },
         canDeleteExpense(exp) {
           if (exp.type === 'personal') return exp.creatorCode === this.currentUser.code;
-          return this.isCreator || exp.creatorCode === this.currentUser.code;
+          return this.isCreator;
         },
         deleteExpense(id) {
-          if(confirm('確定要刪除這筆花費嗎？ 💸')) {
+          if(confirm('確定要刪除這筆帳嗎？ 💸')) {
             this.activeTrip.expenses = this.activeTrip.expenses.filter(e => e.id !== id);
             this.saveDB();
           }
-        },
-        addBudget() {
-          if (!this.budgetForm.item || !this.budgetForm.amount) return;
-          this.activeTrip.budgets.push({ ...this.budgetForm, id: Date.now() });
-          this.budgetForm = { item: '', amount: '' };
-          this.saveDB();
-        },
-        deleteBudget(id) {
-          this.activeTrip.budgets = this.activeTrip.budgets.filter(b => b.id !== id);
-          this.saveDB();
         },
         exportDay() {
           let text = `🧳 ${this.activeTrip.name} - ☀️ 第 ${this.activeDay} 天行程\n\n`;
           this.currentDayItems.forEach(i => {
             text += `${this.getCategoryEmoji(i.category)} [${i.category}] ${i.title}\n`;
             if(i.startTime) text += `🕒 時間: ${i.startTime} - ${i.endTime || '未定'}\n`;
-            if(i.desc) text += `📝 描述: ${i.desc}\n`;
-            if(i.cost) text += `💰 預算: ${i.cost}\n`;
+            if(i.desc) text += `📝 備註: ${i.desc}\n`;
             text += `----------------------\n`;
           });
           
