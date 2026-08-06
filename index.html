@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我們的旅途</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Nunito:wght@400;700&display=swap');
+    
+    body { 
+      font-family: 'M PLUS Rounded 1c', 'Nunito', 'PingFang HK', 'Microsoft JhengHei', sans-serif; 
+      background-color: #F8F4E6; 
+      color: #5C5955; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .bg-kawaii-green { background-color: #93C588; }
+    .bg-kawaii-pink { background-color: #E89E9D; }
+    .bg-kawaii-blue { background-color: #79A3B1; }
+    .bg-kawaii-yellow { background-color: #E6C073; }
+    .text-kawaii-dark { color: #4A4A4A; }
+    .border-kawaii { border-color: #E8E4D9; }
+
+    .sticker-emoji {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 5px solid white;
+      border-radius: 50%;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      width: 110px;
+      height: 110px;
+      font-size: 4rem;
+      margin: 0 auto;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="max-w-md mx-auto bg-[#FCFAF5] min-h-screen shadow-xl relative overflow-hidden flex flex-col">
+    
+    <header v-if="currentView !== 'home'" class="bg-kawaii-green text-white p-4 flex justify-between items-center sticky top-0 z-20 shadow-md rounded-b-3xl">
+      <button v-if="currentView !== 'trip'" @click="currentView = 'home'" class="text-xl px-2 active:scale-90 transition">🔙</button>
+      <button v-else @click="exitTrip" class="text-xl px-2 active:scale-90 transition">🏠</button>
+      
+      <h1 class="text-lg font-bold truncate px-2 flex-1 text-center tracking-wide">
+        {{ currentView === 'trip' ? (activeTrip ? activeTrip.name : '旅のしおり') : pageTitle }}
+      </h1>
+      
+      <div class="w-8"></div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-6 relative">
+      
+      <!-- 視圖 0: 首頁 -->
+      <div v-if="currentView === 'home'" class="flex flex-col items-center justify-center min-h-screen p-6 space-y-8 bg-[#F8F4E6]">
+        <div class="text-center mb-2">
+          <img src="https://1.bp.blogspot.com/-W2rO04hJ3sM/X2L_63eZcZI/AAAAAAABbB4/kGjJzK3Uu0QjK1t3sQ3_uQ-2_s8_X0X3QCNcBGAsYHQ/s400/travel_guide.png" 
+               class="w-32 h-32 object-contain mx-auto mb-4 animate-bounce" 
+               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+          <div class="sticker-emoji hidden mb-4">🧳</div>
+          
+          <h1 class="text-3xl font-bold text-kawaii-dark tracking-wider">我們的旅途</h1>
+          <p class="text-sm text-kawaii-blue mt-2 font-bold">☁️ For M8B Buddies☁️</p>
+        </div>
+
+        <div class="w-full space-y-5">
+          <button @click="currentView = 'create'" class="w-full bg-kawaii-pink text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
+            ✏️ 創建旅程
+          </button>
+          <button @click="currentView = 'join'" class="w-full bg-kawaii-blue text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
+            🤝 參與旅伴的旅程
+          </button>
+          <button @click="currentView = 'joined_list'" class="w-full bg-kawaii-yellow text-white py-4 rounded-3xl text-lg font-bold shadow-md hover:scale-105 transition transform flex items-center justify-center gap-2">
+            📖 翻開我的背包
+          </button>
+        </div>
+      </div>
+
+      <!-- 視圖 1: 已加入的旅程 -->
+      <div v-if="currentView === 'joined_list'" class="p-5">
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-kawaii">
+          <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-kawaii-dark">🎒 我的旅行背包</h2>
+          
+          <div v-if="joinedTrips.length === 0" class="text-gray-400 text-center py-8 text-sm flex flex-col items-center">
+            <img src="https://1.bp.blogspot.com/-8c7quQjxPtM/Xlc113Fq8oI/AAAAAAABXbU/sQf6lP6OaU4gR5G5rU4_a3hV7D_mS6QawCNcBGAsYHQ/s400/empty_box.png" 
+                 class="w-24 h-24 mb-4 opacity-70"
+                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+            <div class="sticker-emoji hidden mb-4 opacity-80" style="width: 80px; height: 80px; font-size: 2.5rem;">📭</div>
+            背包空空的，快去加入或創建吧！
+          </div>
+          
+          <div v-else class="space-y-3">
+            <button v-for="trip in joinedTrips" :key="trip.code" @click="enterTrip(trip.code)" 
+                    class="w-full text-left p-4 bg-[#FCFAF5] border border-kawaii rounded-2xl active:bg-gray-100 transition flex justify-between items-center shadow-sm">
+              <div>
+                <div class="font-bold text-kawaii-dark text-lg">{{ trip.name }}</div>
+                <div class="text-xs text-gray-400 mt-1">手帳代碼: {{ trip.code }} | 身分: {{ trip.userName || '未知' }}</div>
+              </div>
+              <span class="text-2xl bg-white p-2 rounded-full shadow-sm">✈️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 視圖 2: 參與旅程 -->
+      <div v-if="currentView === 'join'" class="p-5">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-kawaii space-y-4">
+          <div class="text-center mb-2">
+            <img src="https://1.bp.blogspot.com/-tVeC6En4e_E/X96mhDTzJmI/AAAAAAABdBo/jlD_jvZvMuk3qUcNjA_XORrA4w3lhPkdQCNcBGAsYHQ/s400/shiori_travel.png" 
+                 class="w-28 h-28 object-contain mx-auto mb-2"
+                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+            <div class="sticker-emoji hidden mb-2" style="width: 90px; height: 90px; font-size: 3rem;">🎫</div>
+          </div>
+          <h2 class="text-lg font-bold text-center mb-4 text-kawaii-dark">輸入乘車券資訊</h2>
+          
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">🔑 旅程碼</label>
+            <input v-model="joinForm.tripCode" placeholder="向創建者索取" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-blue">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">👤 設定專屬用戶碼 (登入用)</label>
+            <input v-model="joinForm.userCode" placeholder="如: alice123" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-blue">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">📛 你的個人稱呼</label>
+            <input v-model="joinForm.userName" placeholder="如: 愛麗絲" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-blue">
+          </div>
+          
+          <button @click="joinTrip" class="w-full bg-kawaii-blue text-white py-3 mt-4 rounded-full font-bold shadow-md flex justify-center items-center gap-2 active:scale-95 transition">
+            <span v-if="isLoading">連線中...</span>
+            <span v-else>🚀 出發去！</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 視圖 3: 創建旅程 -->
+      <div v-if="currentView === 'create'" class="p-5">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-kawaii space-y-4">
+          <div class="text-center mb-2">
+             <img src="https://1.bp.blogspot.com/-9_W6Bw3tBv0/X_6_5_8_2_X/AAAAAAAB_1_2/X_X_X_X/s400/travel_kaban.png" 
+                 class="w-28 h-28 object-contain mx-auto mb-2"
+                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+            <div class="sticker-emoji hidden mb-2" style="width: 90px; height: 90px; font-size: 3rem;">🗺️</div>
+          </div>
+          <h2 class="text-lg font-bold text-center mb-4 text-kawaii-dark">描繪新藍圖</h2>
+
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">🏷️ 旅程名稱</label>
+            <input v-model="createForm.name" placeholder="如: 沖繩五天四夜悠閒遊" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">🔢 總天數</label>
+            <input v-model.number="createForm.days" type="number" placeholder="如: 5" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">🔑 自訂旅程碼 (6-10位英數)</label>
+            <input v-model="createForm.tripCode" placeholder="如: okinawa24" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">👑 你的用戶碼 (創建者)</label>
+            <input v-model="createForm.userCode" placeholder="如: bob456" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 ml-1">📛 你的個人稱呼</label>
+            <input v-model="createForm.userName" placeholder="如: 團長鮑伯" class="w-full p-3 mt-1 bg-[#FCFAF5] border border-kawaii rounded-2xl focus:outline-none focus:ring-2 ring-kawaii-pink">
+          </div>
+
+          <button @click="createTrip" class="w-full bg-kawaii-pink text-white py-3 mt-4 rounded-full font-bold shadow-md flex justify-center items-center gap-2 active:scale-95 transition">
+            <span v-if="isLoading">雲端建立中...</span>
+            <span v-else>✨ 施展魔法創建</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 視圖 4: 旅程內頁 -->
+      <div v-if="currentView === 'trip' && activeTrip" class="flex flex-col">
+        <div class="flex overflow-x-auto no-scrollbar bg-white p-3 space-x-3 border-b border-kawaii sticky top-0 z-10 shadow-sm rounded-b-xl">
+          <button @click="activeTab = 'itinerary'" :class="activeTab === 'itinerary' ? 'bg-kawaii-green text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">🗓️ 行程</button>
+          <button @click="activeTab = 'tbd'" :class="activeTab === 'tbd' ? 'bg-kawaii-pink text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">🤔 待定</button>
+          <button @click="activeTab = 'expenses'" :class="activeTab === 'expenses' ? 'bg-kawaii-blue text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">💸 消費</button>
+          <button @click="activeTab = 'members'" :class="activeTab === 'members' ? 'bg-kawaii-yellow text-white shadow-md' : 'bg-[#FCFAF5] text-gray-400'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">👯 成員</button>
+        </div>
+
+        <div class="p-4">
+          <!-- 頁籤: 行程 -->
+          <div v-if="activeTab === 'itinerary'" class="space-y-4">
+            <div class="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-kawaii">
+              <select v-model="activeDay" class="p-2 bg-transparent font-bold text-kawaii-dark focus:outline-none outline-none flex-1 appearance-none text-center text-lg">
+                <option v-for="d in activeTrip.days" :value="d">☀️ 第 {{ d }} 天</option>
+              </select>
+            </div>
+            
+            <div class="space-y-3">
+              <div v-for="item in currentDayItems" :key="item.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-3 h-full" :class="getCategoryColor(item.category)"></div>
+                <div class="pl-2">
+                  <div class="flex justify-between items-start mb-1">
+                    <span class="text-xs font-bold px-2 py-1 bg-[#FCFAF5] text-gray-600 rounded-lg border border-gray-100">{{ getCategoryEmoji(item.category) }} {{ item.category }}</span>
+                    <div v-if="isCreator" class="space-x-3 text-sm">
+                      <button @click="editItem(item)" class="text-kawaii-blue font-bold">✏️</button>
+                      <button @click="deleteItem(item.id)" class="text-red-400 font-bold">🗑️</button>
+                    </div>
+                  </div>
+                  <h3 class="font-bold text-lg mt-1 text-kawaii-dark">{{ item.title }}</h3>
+                  <div class="mt-2 space-y-1">
+                    <p class="text-sm text-gray-500 flex items-center gap-1 font-bold" v-if="item.startTime || item.endTime">
+                      🕒 {{ item.startTime || '?' }} - {{ item.endTime || '?' }} 
+                    </p>
+                    <p class="text-sm text-gray-600 mt-2 bg-[#F8F4E6] p-3 rounded-2xl" v-if="item.desc">📝 {{ item.desc }}</p>
+                    <a v-if="item.link" :href="item.link" target="_blank" class="inline-block text-xs text-white bg-kawaii-blue px-3 py-1.5 rounded-full mt-2 no-underline shadow-sm">📍 開啟地圖</a>
+                  </div>
+                  <div class="text-[10px] text-gray-400 mt-3 text-right">建立者: {{ item.creatorName }}</div>
+                </div>
+              </div>
+              
+              <div v-if="currentDayItems.length === 0" class="text-center text-gray-400 py-10 flex flex-col items-center">
+                 <img src="https://1.bp.blogspot.com/-0Bv3F4H1N-o/Xv_n_YvK30I/AAAAAAABZ_s/o_q_e_X_n_k_X_X_X_X_X_X/s400/travel_shiori.png" 
+                     class="w-24 h-24 mb-3 opacity-80" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                <div class="sticker-emoji hidden mb-3 opacity-80" style="width: 80px; height: 80px; font-size: 2.5rem;">🍃</div>
+                <span class="font-bold">本日尚無行程，快來安排吧！</span>
+              </div>
+            </div>
+
+            <!-- 新增/編輯行程表單 -->
+            <div class="bg-white p-5 rounded-3xl border border-kawaii shadow-sm mt-4">
+              <h3 class="font-bold mb-3 flex items-center gap-2 text-kawaii-dark text-lg">
+                {{ editingItem ? '✏️ 修改手帳' : '✨ 寫下手帳' }}
+              </h3>
+              <div class="space-y-3">
+                <input v-model="itemForm.title" placeholder="📌 行程名稱 (必填)" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
+                <div class="flex gap-2">
+                  <select v-model="itemForm.category" class="w-1/2 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
+                    <option>景點</option><option>餐廳</option><option>交通</option><option>住宿</option><option>其他</option>
+                  </select>
+                  <select v-model="itemForm.day" class="w-1/2 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
+                    <option :value="null">🤔 待定 (無日期)</option>
+                    <option v-for="d in activeTrip.days" :value="d">☀️ 第 {{ d }} 天</option>
+                  </select>
+                </div>
+                <div class="flex gap-2 items-center bg-[#FCFAF5] border border-kawaii p-2 rounded-xl">
+                  <span class="text-xs font-bold text-gray-400 pl-1">時間</span>
+                  <input v-model="itemForm.startTime" type="time" class="flex-1 p-2 bg-white rounded-lg text-sm border-none outline-none font-bold">
+                  <span class="text-gray-300">-</span>
+                  <input v-model="itemForm.endTime" type="time" class="flex-1 p-2 bg-white rounded-lg text-sm border-none outline-none font-bold">
+                </div>
+                <textarea v-model="itemForm.desc" placeholder="📝 隨手記點什麼" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none h-20 resize-none"></textarea>
+                <input v-model="itemForm.link" placeholder="📍 地圖連結" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none">
+                <div class="flex gap-2 pt-2">
+                  <button @click="saveItem" class="flex-1 bg-kawaii-green text-white py-3 rounded-full font-bold text-sm shadow-md active:scale-95 transition">
+                    {{ editingItem ? '💾 儲存手帳' : '➕ 貼上手帳' }}
+                  </button>
+                  <button v-if="editingItem" @click="cancelEdit" class="w-1/3 bg-gray-100 text-gray-500 py-3 rounded-full text-sm font-bold">取消</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 頁籤: 待定 -->
+          <div v-if="activeTab === 'tbd'" class="space-y-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-kawaii mb-2 text-center text-sm font-bold text-gray-400">
+              這裡存放還沒決定日期的好點子 💡
+            </div>
+            <div class="space-y-3">
+              <div v-for="item in tbdItems" :key="item.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="text-xs font-bold px-2 py-1 bg-yellow-50 text-yellow-600 border border-yellow-100 rounded-lg">{{ getCategoryEmoji(item.category) }} {{ item.category }}</span>
+                  <div class="space-x-3 text-sm">
+                    <button v-if="isCreator" @click="editItem(item); activeTab='itinerary'" class="text-kawaii-blue font-bold bg-blue-50 px-2 py-1 rounded-lg">📅 安排</button>
+                    <button v-if="isCreator" @click="deleteItem(item.id)" class="text-red-400 font-bold bg-red-50 px-2 py-1 rounded-lg">🗑️</button>
+                  </div>
+                </div>
+                <h3 class="font-bold text-kawaii-dark">{{ item.title }}</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- 頁籤: 消費 -->
+          <div v-if="activeTab === 'expenses'" class="space-y-4">
+             <div class="flex p-1 bg-white rounded-full shadow-sm border border-kawaii">
+              <button @click="expenseType = 'personal'" :class="expenseType==='personal' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">🙋 私房錢</button>
+              <button @click="expenseType = 'group'" :class="expenseType==='group' ? 'bg-kawaii-yellow text-white shadow':'text-gray-400'" class="flex-1 py-2 rounded-full text-sm font-bold transition">👨‍👩‍👧‍👦 公費</button>
+            </div>
+            
+            <!-- 📊 公費結算總覽面板 -->
+            <div v-if="expenseType === 'group'" class="bg-white p-5 rounded-3xl shadow-sm border border-kawaii mb-4">
+              <h3 class="font-bold text-kawaii-dark mb-3 flex items-center gap-2">📊 每人應付總額 (公費結算)</h3>
+              <div v-if="!groupExpenseSummary || groupExpenseSummary.length === 0" class="text-xs text-gray-400 text-center py-2">目前還沒有公費記錄喔！</div>
+              <div v-else class="space-y-3">
+                <div v-for="user in groupExpenseSummary" :key="user.code" class="flex justify-between items-center text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                  <span class="font-bold text-gray-600 flex items-center gap-2">
+                    <div class="w-7 h-7 bg-kawaii-green rounded-full text-white flex items-center justify-center text-xs shadow-sm">{{ user.name.charAt(0) }}</div>
+                    {{ user.name }}
+                  </span>
+                  <div class="text-right">
+                    <div v-if="Object.keys(user.totals).length === 0" class="text-gray-400 text-xs">無須分攤 🎉</div>
+                    <div v-for="(amount, curr) in user.totals" :key="curr" class="text-kawaii-pink font-bold">
+                      {{ curr }} {{ amount.toFixed(1) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div v-for="exp in filteredExpenses" :key="exp.id" class="p-4 border border-kawaii rounded-3xl shadow-sm bg-white relative overflow-hidden">
+                <div class="absolute left-0 top-0 w-3 h-full" :class="expenseType==='group' ? 'bg-kawaii-pink' : 'bg-kawaii-blue'"></div>
+                <div class="pl-2">
+                  <div class="flex justify-between items-start mb-1">
+                    <span class="font-bold text-lg text-kawaii-dark">{{ exp.desc }}</span>
+                    <span class="text-kawaii-pink font-bold text-xl">{{ exp.currency }} {{ exp.amount }}</span>
+                  </div>
+                  
+                  <!-- 公費平分資訊顯示 -->
+                  <div v-if="exp.type === 'group'" class="mt-2 text-xs bg-[#FCFAF5] p-2.5 rounded-xl border border-kawaii space-y-1">
+                    <div class="flex justify-between font-bold text-gray-500">
+                      <span>參與分攤 ({{ exp.participants ? exp.participants.length : 0 }}人)：</span>
+                      <span class="text-kawaii-blue">每人約 {{ exp.currency }} {{ calculateSplit(exp) }}</span>
+                    </div>
+                    <div class="text-gray-400 text-[11px] truncate">
+                      包含：{{ getParticipantNames(exp) }}
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between items-end mt-3">
+                    <span class="text-[10px] text-gray-400">👤 記錄者: {{ exp.creatorName }}</span>
+                    <div class="space-x-2">
+                      <button v-if="exp.type === 'group' && isCreator" @click="editExpense(exp)" class="text-xs font-bold bg-blue-50 text-kawaii-blue px-3 py-1.5 rounded-lg">編輯</button>
+                      <button v-if="canDeleteExpense(exp)" @click="deleteExpense(exp.id)" class="text-xs font-bold bg-red-50 text-red-400 px-3 py-1.5 rounded-lg">刪除</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 新增/編輯帳本表單 -->
+            <div class="bg-white p-5 rounded-3xl border border-kawaii shadow-sm mt-4">
+               <h3 class="font-bold mb-3 text-kawaii-dark flex items-center gap-2 text-lg">
+                {{ editingExpense ? '✏️ 修改帳本' : (expenseType === 'personal' ? '✍️ 記一筆私房錢' : '✍️ 記一筆公費') }}
+              </h3>
+              <div class="space-y-3">
+                <div class="flex gap-2">
+                  <select v-model="expenseForm.currency" class="w-1/3 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
+                    <option>HKD</option><option>TWD</option><option>JPY</option><option>USD</option><option>THB</option><option>CNY</option><option>KRW</option><option>EUR</option>
+                  </select>
+                  <input v-model.number="expenseForm.amount" type="number" placeholder="💰 金額" class="w-2/3 p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-lg outline-none font-bold text-kawaii-pink">
+                </div>
+                <input v-model="expenseForm.desc" placeholder="🛒 買了什麼？" class="w-full p-3 bg-[#FCFAF5] border border-kawaii rounded-xl text-sm outline-none font-bold">
+                
+                <!-- 公費時顯示成員勾選區塊 -->
+                <div v-if="expenseType === 'group'" class="bg-[#FCFAF5] p-3 rounded-2xl border border-kawaii space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-500">👥 選擇分攤成員：</span>
+                    <button @click="toggleSelectAllParticipants" type="button" class="text-xs text-kawaii-blue font-bold">全選 / 取消</button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                    <label v-for="m in activeTrip.members" :key="m.code" class="flex items-center gap-2 text-xs font-bold text-kawaii-dark bg-white p-2 rounded-xl border border-kawaii cursor-pointer">
+                      <input type="checkbox" :value="m.code" v-model="expenseForm.participants" class="rounded accent-kawaii-pink">
+                      <span class="truncate">{{ m.name }}</span>
+                    </label>
+                  </div>
+                  <div class="text-right text-xs text-kawaii-pink font-bold pt-1" v-if="expenseForm.amount && expenseForm.participants.length > 0">
+                    💡 每人分攤：{{ expenseForm.currency }} {{ (expenseForm.amount / expenseForm.participants.length).toFixed(1) }}
+                  </div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                  <button @click="saveExpense" class="flex-1 bg-kawaii-blue text-white py-3 rounded-full font-bold text-sm shadow-md active:scale-95 transition">儲存</button>
+                  <button v-if="editingExpense" @click="cancelEditExpense" class="w-1/3 bg-gray-100 text-gray-500 py-3 rounded-full text-sm font-bold">取消</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 頁籤: 成員 -->
+          <div v-if="activeTab === 'members'" class="space-y-4">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-kawaii text-center">
+              <div class="text-xs text-gray-500 mb-1 font-bold">邀請朋友的手帳碼</div>
+              <div class="text-4xl font-bold text-kawaii-blue tracking-widest my-3 select-all bg-[#FCFAF5] py-2 rounded-xl border border-gray-100">{{ activeTripCode }}</div>
+            </div>
+            
+            <div v-if="isCreator" class="bg-white p-4 rounded-2xl shadow-sm border border-kawaii space-y-2 flex items-center gap-3">
+              <span class="text-sm font-bold text-gray-600 flex-1">⚙️ 旅行總天數</span>
+              <button @click="adjustDays(-1)" class="w-10 h-10 bg-[#FCFAF5] rounded-xl font-bold text-gray-500 shadow-sm">➖</button>
+              <span class="font-bold text-kawaii-dark">{{ activeTrip.days }}</span>
+              <button @click="adjustDays(1)" class="w-10 h-10 bg-[#FCFAF5] rounded-xl font-bold text-gray-500 shadow-sm">➕</button>
+            </div>
+
+            <div>
+              <h2 class="font-bold text-kawaii-dark mb-3">👯 旅伴名單</h2>
+              <ul class="space-y-3">
+                <li v-for="m in activeTrip.members" :key="m.code" class="p-4 bg-white border border-kawaii rounded-2xl flex justify-between items-center shadow-sm">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-kawaii-green rounded-full text-white flex items-center justify-center font-bold text-lg">{{ m.name.charAt(0) }}</div>
+                    <div>
+                      <div class="font-bold text-kawaii-dark">{{ m.name }} <span v-if="m.code === activeTrip.creatorCode" class="text-[10px] bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-md">創建者</span></div>
+                      <div class="text-xs text-gray-400">ID: {{ m.code }}</div>
+                    </div>
+                  </div>
+                  <button v-if="isCreator && m.code !== activeTrip.creatorCode" @click="removeMember(m.code)" class="text-xs font-bold bg-red-50 text-red-400 p-2 rounded-xl">踢出</button>
+                </li>
+              </ul>
+            </div>
+            
+            <!-- ⚠️ 危險區域：刪除旅程 -->
+            <div v-if="isCreator" class="mt-8 pt-4 border-t border-gray-200">
+              <button @click="deleteWholeTrip" class="w-full bg-red-50 text-red-500 py-4 rounded-3xl font-bold shadow-sm active:scale-95 transition flex justify-center items-center gap-2 border border-red-200">
+                ⚠️ 永久刪除此旅程
+              </button>
+              <p class="text-xs text-gray-400 text-center mt-2 font-bold">刪除後所有行程與帳本將無法復原</p>
+            </div>
+            
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AlzaSyDTIgUaTNIK2AeZvUbsWfRZ9hmaV7JNGWA",
+      authDomain: "tripplanner-8dd1a.firebaseapp.com",
+      databaseURL: "https://tripplanner-8dd1a-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tripplanner-8dd1a",
+      storageBucket: "tripplanner-8dd1a.firebasestorage.app",
+      messagingSenderId: "139484369303",
+      appId: "1:139484369303:web:1f5ea1994c1767351e34d2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    createApp({
+      data() {
+        return {
+          joinedTrips: [], 
+          currentView: 'home', 
+          currentUser: null,
+          activeTripCode: null,
+          activeTripData: null, 
+          activeTab: 'itinerary',
+          activeDay: 1,
+          expenseType: 'personal',
+          editingItem: null,
+          editingExpense: null,
+          isLoading: false, 
+          unsubscribeTrip: null, 
+
+          createForm: { name: '', days: '', tripCode: '', userCode: '', userName: '' },
+          joinForm: { tripCode: '', userCode: '', userName: '' },
+          itemForm: this.getEmptyItemForm(),
+          expenseForm: this.getEmptyExpenseForm()
+        }
+      },
+      computed: {
+        activeTrip() {
+          return this.activeTripData;
+        },
+        isCreator() {
+          return this.activeTrip && this.currentUser && this.activeTrip.creatorCode === this.currentUser.code;
+        },
+        pageTitle() {
+          if (this.currentView === 'create') return '創建旅程';
+          if (this.currentView === 'join') return '參與旅程';
+          if (this.currentView === 'joined_list') return '我的背包';
+          return '';
+        },
+        currentDayItems() {
+          if (!this.activeTrip || !this.activeTrip.itineraries) return [];
+          return this.activeTrip.itineraries
+            .filter(i => i.day === this.activeDay)
+            .sort((a, b) => (a.startTime || '24:00').localeCompare(b.startTime || '24:00'));
+        },
+        tbdItems() {
+          if (!this.activeTrip || !this.activeTrip.itineraries) return [];
+          return this.activeTrip.itineraries.filter(i => i.day === null);
+        },
+        filteredExpenses() {
+          if (!this.activeTrip || !this.activeTrip.expenses) return [];
+          if (this.expenseType === 'group') {
+            return this.activeTrip.expenses.filter(e => e.type === 'group');
+          } else {
+            return this.activeTrip.expenses.filter(e => e.type === 'personal' && e.creatorCode === this.currentUser.code);
+          }
+        },
+        groupExpenseSummary() {
+          if (!this.activeTripData || !this.activeTripData.members) return [];
+          
+          // 初始化每位成員的加總資料
+          const summary = {};
+          this.activeTripData.members.forEach(m => {
+            summary[m.code] = { name: m.name, code: m.code, totals: {} };
+          });
+          
+          // 計算每筆公費的分攤
+          const groupExps = (this.activeTripData.expenses || []).filter(e => e.type === 'group');
+          groupExps.forEach(exp => {
+            if (!exp.participants || exp.participants.length === 0) return;
+            const splitAmount = exp.amount / exp.participants.length;
+            
+            exp.participants.forEach(code => {
+              if (summary[code]) {
+                if (!summary[code].totals[exp.currency]) {
+                  summary[code].totals[exp.currency] = 0;
+                }
+                summary[code].totals[exp.currency] += splitAmount;
+              }
+            });
+          });
+          
+          return Object.values(summary);
+        }
+      },
+      mounted() {
+        const joined = localStorage.getItem('joinedTripsCloud_v1');
+        if (joined) this.joinedTrips = JSON.parse(joined);
+      },
+      methods: {
+        saveLocalJoined() {
+          localStorage.setItem('joinedTripsCloud_v1', JSON.stringify(this.joinedTrips));
+        },
+        addToJoined(code, name, userCode, userName) {
+          const exists = this.joinedTrips.find(t => t.code === code);
+          if (!exists) {
+            this.joinedTrips.push({ code, name, userCode, userName });
+            this.saveLocalJoined();
+          } else {
+            exists.userCode = userCode;
+            exists.userName = userName;
+            this.saveLocalJoined();
+          }
+        },
+        async saveActiveTripToCloud() {
+          if (!this.activeTripCode || !this.activeTripData) return;
+          const tripRef = ref(db, 'trips/' + this.activeTripCode);
+          await set(tripRef, this.activeTripData);
+        },
+        async createTrip() {
+          const { name, days, tripCode, userCode, userName } = this.createForm;
+          if (!name || !days || !tripCode || !userCode || !userName) return alert('請填滿所有欄位 ✨');
+          
+          this.isLoading = true;
+          const tripRef = ref(db, 'trips/' + tripCode);
+          
+          try {
+            const snapshot = await get(tripRef);
+            if (snapshot.exists()) {
+              alert('哎呀！這個旅程碼已經有人用了');
+              this.isLoading = false;
+              return;
+            }
+
+            const newTrip = {
+              name, days, creatorCode: userCode, lastActive: Date.now(),
+              members: [{ code: userCode, name: userName }],
+              itineraries: [], expenses: []
+            };
+
+            await set(tripRef, newTrip);
+            this.addToJoined(tripCode, name, userCode, userName);
+            this.login(tripCode, userCode, userName);
+            this.createForm = { name: '', days: '', tripCode: '', userCode: '', userName: '' };
+          } catch (e) {
+            alert('連線失敗，請稍後再試！');
+            console.error(e);
+          }
+          this.isLoading = false;
+        },
+        async joinTrip() {
+          const { tripCode, userCode, userName } = this.joinForm;
+          if (!tripCode || !userCode || !userName) return alert('請確認資訊都有填寫喔 🎫');
+          
+          this.isLoading = true;
+          const tripRef = ref(db, 'trips/' + tripCode);
+          
+          try {
+            const snapshot = await get(tripRef);
+            if (!snapshot.exists()) {
+              alert('找不到這班車，請檢查旅程碼是否正確 🔍');
+              this.isLoading = false;
+              return;
+            }
+
+            const tripData = snapshot.val();
+            tripData.members = tripData.members || [];
+            
+            let member = tripData.members.find(m => m.code === userCode);
+            if (!member) {
+              if (tripData.members.length >= 20) {
+                alert('這趟旅程已經滿 20 人囉！');
+                this.isLoading = false;
+                return;
+              }
+              tripData.members.push({ code: userCode, name: userName });
+              await set(tripRef, tripData); 
+            }
+
+            this.addToJoined(tripCode, tripData.name, userCode, userName);
+            this.login(tripCode, userCode, userName);
+            this.joinForm = { tripCode: '', userCode: '', userName: '' };
+          } catch (e) {
+             alert('連線失敗，請稍後再試！');
+          }
+          this.isLoading = false;
+        },
+        async enterTrip(tripCode) {
+          const localTrip = this.joinedTrips.find(t => t.code === tripCode);
+          const targetUserCode = localTrip ? localTrip.userCode : null;
+
+          const tripRef = ref(db, 'trips/' + tripCode);
+          const snapshot = await get(tripRef);
+          
+          if (!snapshot.exists()) {
+            alert('這本手帳已經消失在時間長河中 🕰️');
+            this.joinedTrips = this.joinedTrips.filter(t => t.code !== tripCode);
+            this.saveLocalJoined();
+            return;
+          }
+
+          const tripData = snapshot.val();
+          tripData.members = tripData.members || [];
+          
+          let member = targetUserCode ? tripData.members.find(m => m.code === targetUserCode) : null;
+          if (!member && tripData.members.length > 0) {
+            member = tripData.members[0];
+          }
+          
+          if(member) {
+            this.login(tripCode, member.code, member.name);
+          } else {
+            alert('找不到您的成員資料，請重新參與旅程 🎫');
+            this.currentView = 'join';
+          }
+        },
+        login(tripCode, userCode, userName) {
+          this.currentUser = { code: userCode, name: userName };
+          this.activeTripCode = tripCode;
+          this.currentView = 'trip';
+          this.activeTab = 'itinerary';
+          
+          if (this.unsubscribeTrip) this.unsubscribeTrip(); 
+          
+          const tripRef = ref(db, 'trips/' + tripCode);
+          this.unsubscribeTrip = onValue(tripRef, (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.val();
+              data.itineraries = data.itineraries || [];
+              data.expenses = data.expenses || [];
+              data.members = data.members || [];
+              this.activeTripData = data;
+            } else {
+              alert('房主已經將手帳刪除了！');
+              this.exitTrip();
+            }
+          });
+        },
+        exitTrip() {
+          if (this.unsubscribeTrip) {
+            this.unsubscribeTrip(); 
+            this.unsubscribeTrip = null;
+          }
+          this.currentView = 'home';
+          this.activeTripCode = null;
+          this.activeTripData = null;
+        },
+        adjustDays(amount) {
+          const newDays = this.activeTripData.days + amount;
+          if (newDays < 1) return;
+          this.activeTripData.days = newDays;
+          if (this.activeDay > newDays) this.activeDay = newDays;
+          this.saveActiveTripToCloud();
+        },
+        removeMember(code) {
+          if(confirm('確定要將這位旅伴請下車嗎？ 🥺')) {
+            this.activeTripData.members = this.activeTripData.members.filter(m => m.code !== code);
+            this.saveActiveTripToCloud();
+          }
+        },
+        async deleteWholeTrip() {
+          if (!this.isCreator) return;
+          
+          const confirmCode = prompt(`這將永久刪除整個旅程和所有資料！\n請輸入旅程碼「${this.activeTripCode}」來確認刪除：`);
+          
+          if (confirmCode === this.activeTripCode) {
+            try {
+              const tripRef = ref(db, 'trips/' + this.activeTripCode);
+              await remove(tripRef);
+              
+              // 移除本地紀錄
+              this.joinedTrips = this.joinedTrips.filter(t => t.code !== this.activeTripCode);
+              this.saveLocalJoined();
+              
+              alert('旅程已成功從雲端刪除！ 👋');
+              this.exitTrip();
+            } catch (e) {
+              alert('刪除失敗，請稍後再試。');
+              console.error(e);
+            }
+          } else if (confirmCode !== null) {
+            alert('旅程碼輸入錯誤，已取消刪除。');
+          }
+        },
+        getCategoryColor(cat) {
+          const map = { '景點': 'bg-green-400', '餐廳': 'bg-orange-400', '交通': 'bg-blue-400', '住宿': 'bg-purple-400', '其他': 'bg-gray-400' };
+          return map[cat] || 'bg-gray-400';
+        },
+        getCategoryEmoji(cat) {
+          const map = { '景點': '📸', '餐廳': '🍽️', '交通': '🚌', '住宿': '🛏️', '其他': '📌' };
+          return map[cat] || '📌';
+        },
+        getEmptyItemForm() {
+          return { id: null, title: '', category: '景點', day: 1, startTime: '', endTime: '', desc: '', link: '' };
+        },
+        saveItem() {
+          if (!this.itemForm.title) return alert('請給這個行程一個名字吧！ 🏷️');
+          if (this.editingItem && !this.isCreator) return alert('🔒 只有旅程創建者才可以更改喔！');
+
+          const newItem = { 
+            ...this.itemForm, 
+            creatorCode: this.currentUser.code,
+            creatorName: this.currentUser.name
+          };
+          
+          if (this.editingItem) {
+            const index = this.activeTripData.itineraries.findIndex(i => i.id === this.editingItem.id);
+            if(index !== -1) this.activeTripData.itineraries[index] = newItem;
+          } else {
+            newItem.id = Date.now();
+            this.activeTripData.itineraries.push(newItem);
+          }
+          this.itemForm = this.getEmptyItemForm();
+          this.itemForm.day = this.activeDay; 
+          this.editingItem = null;
+          this.saveActiveTripToCloud();
+        },
+        editItem(item) {
+          if (!this.isCreator) return;
+          this.editingItem = item;
+          this.itemForm = { ...item };
+        },
+        cancelEdit() {
+          this.editingItem = null;
+          this.itemForm = this.getEmptyItemForm();
+        },
+        deleteItem(id) {
+          if (!this.isCreator) return;
+          if(confirm('確定要擦掉這個行程嗎？ 🗑️')) {
+            this.activeTripData.itineraries = this.activeTripData.itineraries.filter(i => i.id !== id);
+            this.saveActiveTripToCloud();
+          }
+        },
+        getEmptyExpenseForm() {
+          const allMemberCodes = this.activeTripData && this.activeTripData.members 
+            ? this.activeTripData.members.map(m => m.code) 
+            : [];
+          return { id: null, currency: 'HKD', amount: '', desc: '', participants: allMemberCodes };
+        },
+        toggleSelectAllParticipants() {
+          const allCodes = this.activeTripData.members.map(m => m.code);
+          if (this.expenseForm.participants.length === allCodes.length) {
+            this.expenseForm.participants = [];
+          } else {
+            this.expenseForm.participants = allCodes;
+          }
+        },
+        calculateSplit(exp) {
+          if (!exp.participants || exp.participants.length === 0) return exp.amount;
+          return (exp.amount / exp.participants.length).toFixed(1);
+        },
+        getParticipantNames(exp) {
+          if (!exp.participants || exp.participants.length === 0) return '無';
+          return exp.participants.map(code => {
+            const m = this.activeTripData.members.find(member => member.code === code);
+            return m ? m.name : code;
+          }).join(', ');
+        },
+        saveExpense() {
+          if (!this.expenseForm.amount || !this.expenseForm.desc) return alert('金額和描述都要填寫喔 ✍️');
+          if (this.expenseType === 'group' && this.editingExpense && !this.isCreator) return alert('🔒 只有創建者可改公費');
+          if (this.expenseType === 'group' && (!this.expenseForm.participants || this.expenseForm.participants.length === 0)) {
+            return alert('請至少勾選一位分攤成員 👥');
+          }
+
+          const newExp = {
+            ...this.expenseForm,
+            type: this.expenseType,
+            creatorCode: this.currentUser.code,
+            creatorName: this.currentUser.name
+          };
+
+          if (this.editingExpense) {
+            const index = this.activeTripData.expenses.findIndex(e => e.id === this.editingExpense.id);
+            if(index !== -1) this.activeTripData.expenses[index] = { ...newExp, id: this.editingExpense.id };
+            this.editingExpense = null;
+          } else {
+            newExp.id = Date.now();
+            this.activeTripData.expenses.push(newExp);
+          }
+          this.expenseForm = this.getEmptyExpenseForm();
+          this.saveActiveTripToCloud();
+        },
+        editExpense(exp) {
+          if (exp.type === 'group' && !this.isCreator) return;
+          this.editingExpense = exp;
+          this.expenseForm = { ...exp };
+          // 確保編輯時未定義participants時能自動帶入全部成員
+          if (!this.expenseForm.participants) {
+            this.expenseForm.participants = this.activeTripData.members.map(m => m.code);
+          }
+        },
+        cancelEditExpense() {
+          this.editingExpense = null;
+          this.expenseForm = this.getEmptyExpenseForm();
+        },
+        canDeleteExpense(exp) {
+          if (exp.type === 'personal') return exp.creatorCode === this.currentUser.code;
+          return this.isCreator;
+        },
+        deleteExpense(id) {
+          if(confirm('確定要刪除這筆帳嗎？ 💸')) {
+            this.activeTripData.expenses = this.activeTripData.expenses.filter(e => e.id !== id);
+            this.saveActiveTripToCloud();
+          }
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
