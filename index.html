@@ -102,14 +102,19 @@
           </div>
           
           <div v-else class="space-y-3">
-            <button v-for="trip in joinedTrips" :key="trip.code" @click="enterTrip(trip.code)" 
-                    class="w-full text-left p-4 bg-[#FCFAF5] border border-kawaii rounded-2xl active:bg-gray-100 transition flex justify-between items-center shadow-sm">
-              <div>
-                <div class="font-bold text-kawaii-dark text-lg">{{ trip.name }}</div>
-                <div class="text-xs text-gray-400 mt-1">手帳代碼: {{ trip.code }} | 身分: {{ trip.userName || '未知' }}</div>
-              </div>
-              <span class="text-2xl bg-white p-2 rounded-full shadow-sm">✈️</span>
-            </button>
+            <div v-for="trip in joinedTrips" :key="trip.code" class="flex items-center gap-2">
+              <button @click="enterTrip(trip.code)" 
+                      class="flex-1 text-left p-4 bg-[#FCFAF5] border border-kawaii rounded-2xl active:bg-gray-100 transition flex justify-between items-center shadow-sm">
+                <div>
+                  <div class="font-bold text-kawaii-dark text-lg">{{ trip.name }}</div>
+                  <div class="text-xs text-gray-400 mt-1">手帳代碼: {{ trip.code }} | 身分: {{ trip.userName || '未知' }}</div>
+                </div>
+                <span class="text-2xl bg-white p-2 rounded-full shadow-sm">✈️</span>
+              </button>
+              <button @click.stop="deleteTripFromList(trip)" class="p-4 bg-red-50 text-red-400 rounded-2xl font-bold border border-red-100 active:scale-95 transition" title="刪除／移除旅程">
+                🗑️
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -407,6 +412,14 @@
                 </li>
               </ul>
             </div>
+
+            <!-- 創建者刪除整本旅程區塊 -->
+            <div v-if="isCreator" class="pt-6">
+              <button @click="deleteEntireTrip" class="w-full bg-red-50 text-red-500 border border-red-200 py-3 rounded-full font-bold text-sm shadow-sm active:scale-95 transition flex justify-center items-center gap-2">
+                🗑️ 銷毀整本旅程 (僅創建者)
+              </button>
+            </div>
+
           </div>
 
         </div>
@@ -668,6 +681,59 @@
           this.currentView = 'home';
           this.activeTripCode = null;
           this.activeTripData = null;
+        },
+        async deleteEntireTrip() {
+          if (!this.isCreator) return;
+          if (confirm(`確定要銷毀《${this.activeTrip.name}》這本手帳嗎？所有雲端資料將無法復原 🗑️`)) {
+            const tripCode = this.activeTripCode;
+            this.exitTrip();
+            
+            try {
+              // 1. 從 Firebase 雲端刪除
+              await remove(ref(db, 'trips/' + tripCode));
+              
+              // 2. 從本機背包清理
+              this.joinedTrips = this.joinedTrips.filter(t => t.code !== tripCode);
+              this.saveLocalJoined();
+              
+              alert('旅程已徹底銷毀 ✨');
+            } catch (e) {
+              alert('刪除失敗，請檢查網路連線 🥺');
+              console.error(e);
+            }
+          }
+        },
+        async deleteTripFromList(trip) {
+          // 先向雲端確認該旅程創作者資訊
+          try {
+            const snapshot = await get(ref(db, 'trips/' + trip.code));
+            
+            if (snapshot.exists()) {
+              const tripData = snapshot.val();
+              const isTripCreator = tripData.creatorCode === trip.userCode;
+
+              if (isTripCreator) {
+                if (confirm(`你是《${trip.name}》的創建者，確定要從雲端永久刪除這本手帳嗎？ 🗑️`)) {
+                  await remove(ref(db, 'trips/' + trip.code));
+                  this.joinedTrips = this.joinedTrips.filter(t => t.code !== trip.code);
+                  this.saveLocalJoined();
+                  alert('旅程已成功刪除！');
+                }
+              } else {
+                if (confirm(`確定要將《${trip.name}》從你的背包中移除嗎？ 🎒`)) {
+                  this.joinedTrips = this.joinedTrips.filter(t => t.code !== trip.code);
+                  this.saveLocalJoined();
+                }
+              }
+            } else {
+              // 雲端資料已被銷毀，直接清理本機
+              this.joinedTrips = this.joinedTrips.filter(t => t.code !== trip.code);
+              this.saveLocalJoined();
+              alert('此旅程已不存在，已從你的背包中移除。');
+            }
+          } catch (e) {
+            alert('無法連線至雲端，請稍後再試');
+          }
         },
         adjustDays(amount) {
           const newDays = this.activeTripData.days + amount;
